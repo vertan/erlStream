@@ -6,10 +6,16 @@
 %%%      Created  : 16 Apr 2014
 %%%      Version  : 0.01
 
--vsn(0.01).
+
+
 
 -module(server).
+-vsn(0.01).
+-import(gen_tcp).
 -export([start/0]).
 
 start() ->
 	io:format("Welcome to the server!~n").
+	{ok,Lsocket} = gen_tcp:listen(port, [binary]),
+	{ok,Sock} = gen_tcp:accept(Lsocket),
+	{ok,
