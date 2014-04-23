@@ -8,7 +8,6 @@
 
 -module(server).
 -vsn(0.01).
--import(gen_tcp).
 -export([start/0]).
 
 start() ->
