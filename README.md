@@ -1,6 +1,6 @@
 ==== COURSE ==== 
 
-Process Oriented Programming (1DT049) Spring 2012
+Process Oriented Programming (1DT049) Spring 2014
 
 Department of Information Technology 
 Uppsala university
@@ -8,37 +8,32 @@ Uppsala university
 
 ==== GROUP ==== 
 
-XX (change this to your group number).
+01 (change this to your group number).
 
 
 ==== PROJECT NAME ==== 
 
-Add your catchy project name here.
+erlStream
 
 
 ==== PROJECT DESCRIPTION ==== 
 
-Add a short description of your project here. 
+erlStream is a system for streaming music from a server to clients. The server is written in Erlang and the client in Java.
 
 
 ==== GROUP MEMBERS ==== 
 
-YYMMDD-XXXX Firstname.Lastname.1234@student.uu.se
-YYMMDD-XXXX Firstname.Lastname.1234@student.uu.se
-YYMMDD-XXXX Firstname.Lastname.1234@student.uu.se
-YYMMDD-XXXX Firstname.Lastname.1234@student.uu.se
+910929-4208 Jeanette.Castillo.9040@student.uu.se
+931022-7476 Filip.Hedman.3848@student.uu.se
+930405-0611 Robert.Källgren.9616@student.uu.se
+920820-4116 Oscar.Mangard.????@student.uu.se
+920329-4179 Mikael.Sernheim.2899@student.uu.se
 
 
 ==== MAY THE SOURCE BE WITH YOU ==== 
 
-Everything you need to compile and run the system is included in this
-directory. 
-
-However, you might want to get the most up to date version of this
-directory. 
-
-Add a description here on how to use Subversion, Git or similar to get
-the most up to date version of this directory. 
+You can get an up-to-date version of the system by running:
+git clone https://github.com/Vertigo0/erlStream.git
 
 ==== ERLANG VERSION ====
 
