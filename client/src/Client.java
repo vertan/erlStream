@@ -2,6 +2,12 @@ import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
+/**
+ * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+ *
+ * The client class provides methods to communicate with a server. 
+ *
+ */
 public class Client {
 
     private static boolean running = true;
