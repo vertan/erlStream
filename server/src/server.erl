@@ -12,21 +12,28 @@
 -export([start/0]).
 
 start() ->
-	io:format("Welcome to the server!~n"),
-	{ok,Lsocket} = gen_tcp:listen(1337, [binary]),
-	accept(Lsocket).
+    io:format("Welcome to the server!~n"),
+    {ok,Lsocket} = gen_tcp:listen(8181, [binary, {active, once}]),
+    accept(Lsocket).
 
 
 accept(Lsocket)	->
-	{ok,Socket} = gen_tcp:accept(Lsocket),
-	spawn(fun() -> loop(Socket) end),
-	accept(Lsocket).
+    io:format("accepterar ~n"),
+    %{ok,Socket} = gen_tcp:accept(Lsocket),
+    {error,Reason} = gen_tcp:accept(Lsocket),
+    io:format("ERROR: ~s", [Reason]).
+    %spawn(fun() -> loop(Socket) end),
+    %loop(Socket),
+    %accept(Lsocket).
 	
 loop(Socket) ->
-	case gen_tcp:recv(Socket,0) of
-		{ok,Data} -> io:format(Data),
-			loop(Socket);
-		{error,_} ->
-			ok
-	end.
+    io:format("Nu loopas det"),
+    case gen_tcp:recv(Socket,0) of
+	{ok,Data} ->
+	    io:format("HEJ"),
+	    io:format("Test: ~s",[Data]),
+	    loop(Socket);
+	{error,_} ->
+	    ok
+    end.
 	
