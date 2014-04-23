@@ -16,19 +16,19 @@
 
 start() ->
 	io:format("Welcome to the server!~n").
-	{ok,Lsocket} = gen_tcp:listen(port, [binary]),
+	{ok,Lsocket} = gen_tcp:listen(1337, [binary]),
 	accept(Lsocket).
 
 
 accept(Lsocket)	->
 	{ok,Socket} = gen_tcp:accept(Lsocket),
-	spawn(fun() -> loop(Sock) end),
+	spawn(fun() -> loop(Socket) end),
 	accept(Lsocket).
 	
-loop(Sock) ->
-	case gen_tcp:recv(Sock,0) of
+loop(Socket) ->
+	case gen_tcp:recv(Socket,0) of
 		{ok,Data} -> io:format(Data),
-			loop(Sock);
+			loop(Socket);
 		{error,_} ->
 			ok
 	end.
