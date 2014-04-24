@@ -12,21 +12,25 @@
 
 start() ->
     io:format("Welcome to the server!~n"),
-    {ok,Lsocket} = gen_tcp:listen(1339, [{active, false}]),
-    accept(Lsocket).
+    {ok,InSocket} = gen_tcp:listen(1340, [{active, false}]),
+    {ok,OutSocket} = gen_tcp:listen(1341, [{active, false}]),
+    accept(InSocket, OutSocket).
 
-accept(Lsocket)	->
-    {ok,Socket} = gen_tcp:accept(Lsocket),
-    loop(Socket, ""),
-    accept(Lsocket).
+accept(InSocket, OutSocket) ->
+    {ok,InSocketOpen} = gen_tcp:accept(InSocket),
+    {ok,OutSocketOpen} = gen_tcp:accept(OutSocket),
+    io:format("dags att loopa"),
+    loop(InSocketOpen, OutSocketOpen, ""),
+    accept(InSocket, OutSocket).
 
-loop(Socket, Message) ->
-    case gen_tcp:recv(Socket,0) of
+loop(InSocket, OutSocket, Message) ->
+    case gen_tcp:recv(InSocket,0) of
 	{ok,Data} ->
-       	    loop(Socket, lists:append([Message | [Data]]));
+       	    loop(InSocket, OutSocket, lists:append([Message | [Data]]));
 	{error,closed} ->
 	    io:format("Message received: ~p~n",[Message]),
-	    gen_tcp:send(Socket, "Tack!"),
+	    gen_tcp:send(OutSocket, "Tack!"),
+	    gen_tcp:close(OutSocket),
 	    ok;
 	{error,Reason} ->
 	    io:format("Error: ~s~n", [Reason])

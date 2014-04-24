@@ -16,19 +16,20 @@ public class Client {
 
     public static void main(String[] args) throws Exception {
 	String address = "localhost";
-	int port = 1339;
+	int inPort = 1341;
+	int outPort = 1340;
 
 	if (args.length > 0) {
 	    address = args[0];
 	    
 	    if (args.length > 1) {
-		port = Integer.parseInt(args[1]);
+		//port = Integer.parseInt(args[1]);
 	    }
 	}
 
 	System.out.println("Welcome to the client!");
 
-	Socket clientSocket;
+	Socket inSocket, outSocket;
 	DataOutputStream toServer;
 	BufferedReader fromServer;
 
@@ -39,22 +40,24 @@ public class Client {
 	    System.out.print("> ");
 	    String message = sc.nextLine();
 
-	    clientSocket = new Socket(address, port);
-	    toServer = new DataOutputStream(clientSocket.getOutputStream());
-	    fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	    inSocket = new Socket(address, inPort);
+	    outSocket = new Socket(address, outPort);
+	    toServer = new DataOutputStream(outSocket.getOutputStream());
+	    fromServer = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
 
 	    switch(message) {
 	    case "quit":
-		clientSocket.close();
+		inSocket.close();
+		outSocket.close();
 		running = false;
 		break;
 	    default:
 		toServer.writeBytes(message);
-		clientSocket.close();
+		outSocket.close();
 	    }
 
-	    // String answer = fromServer.readLine();
-	    // System.out.println("Answer from server: " + answer);
+	    String answer = fromServer.readLine();
+	    System.out.println("Answer from server: " + answer);
 	}
 	
 	System.out.println("Goodbye!");
