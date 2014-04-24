@@ -8,7 +8,7 @@ import java.util.Scanner;
  * The client class provides methods to communicate with a server.
  *
  * @param address The address of the server
- * @param port The port of the server
+ * @param port The in port of the server
  */
 public class Client {
 
@@ -23,7 +23,8 @@ public class Client {
 	    address = args[0];
 	    
 	    if (args.length > 1) {
-		//port = Integer.parseInt(args[1]);
+		outPort = Integer.parseInt(args[1]);
+		inPort = outPort + 1;
 	    }
 	}
 

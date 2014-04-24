@@ -19,7 +19,6 @@ start() ->
 accept(InSocket, OutSocket) ->
     {ok,InSocketOpen} = gen_tcp:accept(InSocket),
     {ok,OutSocketOpen} = gen_tcp:accept(OutSocket),
-    io:format("dags att loopa"),
     loop(InSocketOpen, OutSocketOpen, ""),
     accept(InSocket, OutSocket).
 
@@ -29,7 +28,7 @@ loop(InSocket, OutSocket, Message) ->
        	    loop(InSocket, OutSocket, lists:append([Message | [Data]]));
 	{error,closed} ->
 	    io:format("Message received: ~p~n",[Message]),
-	    gen_tcp:send(OutSocket, "Tack!"),
+	    gen_tcp:send(OutSocket, "Thank you for your message!"),
 	    gen_tcp:close(OutSocket),
 	    ok;
 	{error,Reason} ->
