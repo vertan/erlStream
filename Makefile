@@ -32,7 +32,7 @@ server: $(BEAM_FILES)
 server/ebin/%.beam: server/src/%.erl
 	$(ERLC) $(ERLC_FLAGS) -o server/ebin $<
 
-start_server: 
+start_server: server
 	(cd server/ebin && erl -eval 'server:start(), init:stop()')
 
 #test: all
@@ -76,13 +76,13 @@ client: $(CLASS_FILES)
 client/bin/%.class: client/src/%.java
 	$(JAVAC) $(JAVAC_FLAGS) $< -d $(CLASS_DIR) 
 
-start_client:
+start_client: client
 	(cd client/bin && java Client)
 
-#test: all
+test: all
 	# Run tests
 
-#doc:
+doc:
 	# javadoc client/src/*.java
 
 clean_client:
