@@ -16,7 +16,7 @@ public class Client {
 
     public static void main(String[] args) throws Exception {
 	String address = "localhost";
-	int port = 1337;
+	int port = 1339;
 
 	if (args.length > 0) {
 	    address = args[0];
@@ -28,14 +28,18 @@ public class Client {
 
 	System.out.println("Welcome to the client!");
 
-	Socket clientSocket = new Socket(address, port);
-	DataOutputStream toServer = new DataOutputStream(clientSocket.getOutputStream());
-	BufferedReader fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	//Socket clientSocket = new Socket(address, port);
+	//DataOutputStream toServer = new DataOutputStream(clientSocket.getOutputStream());
+	//BufferedReader fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
 	Scanner sc = new Scanner(System.in);
 	System.out.println("Type your commands:");
 
 	while(running) {
+	    Socket clientSocket = new Socket(address, port);
+	    DataOutputStream toServer = new DataOutputStream(clientSocket.getOutputStream());
+	    BufferedReader fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	    
 	    System.out.print("> ");
 	    String message = sc.nextLine();
 
@@ -45,13 +49,19 @@ public class Client {
 		break;
 	    default:
 		toServer.writeBytes(message);
+		clientSocket.close();
+		//toServer.close();
+		//clientSocket = new Socket(address, port);
+		//toServer = new DataOutputStream(clientSocket.getOutputStream());
 	    }
 
 	    // String answer = fromServer.readLine();
 	    // System.out.println("Answer from server: " + answer);
 	}
 	
-	clientSocket.close();
+	//toServer.close();
+	//clientSocket.close();
+	
 	System.out.println("Goodbye!");
     }
 
