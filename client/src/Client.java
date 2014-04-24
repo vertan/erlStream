@@ -28,39 +28,34 @@ public class Client {
 
 	System.out.println("Welcome to the client!");
 
-	//Socket clientSocket = new Socket(address, port);
-	//DataOutputStream toServer = new DataOutputStream(clientSocket.getOutputStream());
-	//BufferedReader fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	Socket clientSocket;
+	DataOutputStream toServer;
+	BufferedReader fromServer;
 
 	Scanner sc = new Scanner(System.in);
 	System.out.println("Type your commands:");
 
 	while(running) {
-	    Socket clientSocket = new Socket(address, port);
-	    DataOutputStream toServer = new DataOutputStream(clientSocket.getOutputStream());
-	    BufferedReader fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-	    
 	    System.out.print("> ");
 	    String message = sc.nextLine();
 
+	    clientSocket = new Socket(address, port);
+	    toServer = new DataOutputStream(clientSocket.getOutputStream());
+	    fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
 	    switch(message) {
 	    case "quit":
+		clientSocket.close();
 		running = false;
 		break;
 	    default:
 		toServer.writeBytes(message);
 		clientSocket.close();
-		//toServer.close();
-		//clientSocket = new Socket(address, port);
-		//toServer = new DataOutputStream(clientSocket.getOutputStream());
 	    }
 
 	    // String answer = fromServer.readLine();
 	    // System.out.println("Answer from server: " + answer);
 	}
-	
-	//toServer.close();
-	//clientSocket.close();
 	
 	System.out.println("Goodbye!");
     }
