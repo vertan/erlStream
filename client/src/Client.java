@@ -19,50 +19,49 @@ public class Client {
 	int inPort = 1341;
 	int outPort = 1340;
 
-	if (args.length > 0) {
-	    address = args[0];
-	    
-	    if (args.length > 1) {
-		outPort = Integer.parseInt(args[1]);
-		inPort = outPort + 1;
-	    }
-	}
+	Scanner sc = new Scanner(System.in);
+	String input;
+
+	System.out.print("Server address (Press ENTER for localhost): ");
+	input = sc.nextLine();
+
+	if (!input.equals("")) {
+	    address = input;
+	}	    
+
+	// TODO: Verify connection before printing anything
 
 	System.out.println("Welcome to the client!");
+	System.out.println("Type your commands:");
 
 	Socket inSocket, outSocket;
 	DataOutputStream toServer;
 	BufferedReader fromServer;
 
-	Scanner sc = new Scanner(System.in);
-	System.out.println("Type your commands:");
-
 	while(running) {
 	    System.out.print("> ");
-	    String message = sc.nextLine();
-
-	    inSocket = new Socket(address, inPort);
-	    outSocket = new Socket(address, outPort);
-	    toServer = new DataOutputStream(outSocket.getOutputStream());
-	    fromServer = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
-
-	    switch(message) {
+	    input = sc.nextLine();
+	    
+	    switch(input) {
 	    case "quit":
-		inSocket.close();
-		outSocket.close();
 		running = false;
 		break;
 	    default:
-		toServer.writeBytes(message);
+		inSocket = new Socket(address, inPort);
+		outSocket = new Socket(address, outPort);
+		toServer = new DataOutputStream(outSocket.getOutputStream());
+		fromServer = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
+		
+		toServer.writeBytes(input);
 		outSocket.close();
-	    }
-
-	    System.out.println("Answer from server:");
-	    String answer = fromServer.readLine();
-
-	    while(answer != null) {
-		System.out.println(answer);
-		answer = fromServer.readLine();
+	    
+		System.out.println("Answer from server:");
+		String answer = fromServer.readLine();
+		
+		while(answer != null) {
+		    System.out.println(answer);
+		    answer = fromServer.readLine();
+		}
 	    }
 	}
 	

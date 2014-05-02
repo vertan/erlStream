@@ -44,7 +44,5 @@ make start_server
 #### Terminal X (Client X-1)
 ```bash
 cd path/to/erlStream
-make
-cd client/bin
-java Client yourserver.com
+make start_client
 ```
