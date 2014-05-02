@@ -60,7 +60,7 @@ public class Client {
 	    System.out.println("Answer from server:");
 	    String answer = fromServer.readLine();
 
-	    while(answer != null && answer.length() != 0) {
+	    while(answer != null) {
 		System.out.println(answer);
 		answer = fromServer.readLine();
 	    }

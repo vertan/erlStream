@@ -26,18 +26,35 @@ loop(InSocket, OutSocket, Message) ->
     case gen_tcp:recv(InSocket,0) of
 	{ok,Data} ->
        	    loop(InSocket, OutSocket, lists:append([Message | [Data]]));
-	{error,closed} ->
-	    io:format("Message received: ~p~n",[Message]),
-	    case Message of
-		"list" ->
-		    ReturnMessage = os:cmd("ls ../.."),
-		    ok;
-		_ ->
-		    ReturnMessage = "Thank you for your message!",
-		    ok
-	    end,
+	{error, closed} ->
+	    io:format("Command received: ~p~n", [Message]),
+	    ReturnMessage = parseCommand(string:tokens(Message, " ")),
 	    gen_tcp:send(OutSocket, ReturnMessage),
 	    gen_tcp:close(OutSocket);
 	{error,Reason} ->
 	    io:format("Error: ~s~n", [Reason])
     end.
+
+parseCommand([]) ->
+    "Please enter a command!";
+parseCommand([Command | Arguments]) ->
+    case Command of
+	"list" ->
+	    os:cmd("ls ../files");
+	"play" ->
+	    play(Arguments);
+	_ ->
+	    ["Unknown command '", Command, "'!"]
+    end.
+    
+play([]) ->
+    "No file given!";
+play([File|_]) ->
+    FilePath = lists:append("../files/", File),
+    case file:read_file(FilePath) of
+	{ok, Binary} ->
+	    binary_to_list(Binary);
+	{error, Reason} ->
+	    "Could not open file!"
+    end.
+    
