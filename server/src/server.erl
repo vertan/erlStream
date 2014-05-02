@@ -27,13 +27,17 @@ loop(InSocket, OutSocket, Message) ->
 	{ok,Data} ->
        	    loop(InSocket, OutSocket, lists:append([Message | [Data]]));
 	{error,closed} ->
+	    io:format("Message received: ~p~n",[Message]),
 	    case Message of
+		"list" ->
+		    ReturnMessage = os:cmd("ls ../.."),
+		    ok;
 		_ ->
-		    io:format("Message received: ~p~n",[Message]),
-		    gen_tcp:send(OutSocket, "Thank you for your message!"),
-		    gen_tcp:close(OutSocket),
+		    ReturnMessage = "Thank you for your message!",
 		    ok
-	    end;
+	    end,
+	    gen_tcp:send(OutSocket, ReturnMessage),
+	    gen_tcp:close(OutSocket);
 	{error,Reason} ->
 	    io:format("Error: ~s~n", [Reason])
     end.

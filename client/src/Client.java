@@ -57,8 +57,13 @@ public class Client {
 		outSocket.close();
 	    }
 
+	    System.out.println("Answer from server:");
 	    String answer = fromServer.readLine();
-	    System.out.println("Answer from server: " + answer);
+
+	    while(answer != null && answer.length() != 0) {
+		System.out.println(answer);
+		answer = fromServer.readLine();
+	    }
 	}
 	
 	System.out.println("Goodbye!");
