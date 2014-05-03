@@ -1,0 +1,1 @@
+-record(song, {name, album, artist, duration=10}).

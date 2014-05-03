@@ -10,6 +10,19 @@
 -vsn(0.01).
 -export([start/0]).
 
+-include_lib("eunit/include/eunit.hrl").
+
+%% @doc Listens for commands and sends back the appropriate data.
+%%
+%% === Example ===
+%%
+%% <div class="example">```
+%% > utils:start().
+%% Command received: "list"
+%% '''
+%% </div>
+-spec start() -> ok.
+
 start() ->
     io:format("Welcome to the server!~n"),
     {ok,InSocket} = gen_tcp:listen(1340, [{active, false}]),
@@ -58,3 +71,13 @@ play([File|_]) ->
 	    "Could not open file!"
     end.
     
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%			   EUnit Test Cases                                  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% All functions with names ending with _test() or _test_() will be
+%% called automatically by add:test()
+
+parseCommand_test() ->
+    tbi.
