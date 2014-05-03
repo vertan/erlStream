@@ -2,6 +2,8 @@
 GROUP_NUMBER := 01
 ####################
 
+.SILENT:
+
 ERLC := erlc
 ERLC_FLAGS := -W -I server/include
 
@@ -27,6 +29,10 @@ all:	server client
 
 clean: clean_server clean_client
 
+test: test_server test_client
+
+doc: doc_server doc_client
+
 server: $(BEAM_FILES)
 
 server/ebin/%.beam: server/src/%.erl
@@ -35,17 +41,17 @@ server/ebin/%.beam: server/src/%.erl
 start_server: server
 	(cd server/ebin && erl -eval 'server:start(), init:stop()')
 
-#test: all
-	#(cd server/ebin && erl -noinput -eval 'eunit:test({dir, "."}, [verbose]), init:stop()')
-
-#doc: $(BEAM_FILES)
-#	erl -noshell -eval "edoc:files($(EDOC_SRC_LIST), [{dir, 'doc/html'}])" -s init stop
-
 clean_server:
 	rm -fr server/.#* *.dump
 	rm -fr server/ebin/*.dump
 	rm -fr server/ebin/*.beam
 	(cd server/doc/html && find . -name "*" -a ! -name overview.edoc -exec rm -rf {} \;)
+
+test_server: server
+	(cd server/ebin && erl -noinput -eval 'eunit:test({dir, "."}, [verbose]), init:stop()')
+
+doc_server: $(BEAM_FILES)
+	erl -noshell -eval "edoc:files($(EDOC_SRC_LIST), [{dir, 'server/doc/html'}])" -s init stop
 
 remove_finderinfo:
 	-xattr -d "com.apple.FinderInfo" server/src/*.erl server/include/*.hrl doc/* server/doc/html/*
@@ -61,8 +67,6 @@ else
 endif
 
 #Client makefile--------------------------------------------------
-# .SILENT:
-
 JAVAC := javac
 JAVAC_FLAGS :=
 
@@ -79,12 +83,11 @@ client/bin/%.class: client/src/%.java
 start_client: client
 	(cd client/bin && java Client)
 
-test: all
-	# Run tests
+test_client: client
 
-doc:
-	# javadoc client/src/*.java
+doc_client:
+	javadoc client/src/*.java -d client/doc/
 
 clean_client:
 	rm -f client/bin/*.class
-	rm -f client/doc/*
+	rm -fr client/doc/*

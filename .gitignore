@@ -5,3 +5,5 @@
 #*
 *#
 *.dump
+server/doc/html/*
+client/doc/*
