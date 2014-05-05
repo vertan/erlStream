@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
+import javazoom.jl.player.advanced.AdvancedPlayer;
 
 /**
  * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
@@ -54,6 +55,10 @@ public class Client {
 		
 		toServer.writeBytes(input);
 		outSocket.close();
+
+		InputStream audioData = inSocket.getInputStream();
+		AdvancedPlayer musicPlayer = new AdvancedPlayer(audioData);
+		musicPlayer.play();
 	    
 		System.out.println("Answer from server:");
 		String answer = fromServer.readLine();
