@@ -81,7 +81,7 @@ client/bin/%.class: client/src/%.java
 	$(JAVAC) $(JAVAC_FLAGS) $< -d $(CLASS_DIR) 
 
 start_client: client
-	(cd client/bin && java Client)
+	(cd client/bin && java -cp "../libs/*:." Client)
 
 test_client: client
 
