@@ -69,7 +69,7 @@ public class Communicator {
 	toServer = new DataOutputStream(outSocket.getOutputStream());
 	fromServer = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
     
-	toServer.writeBytes("play " + song.getFileName() + ".mp3");
+	toServer.writeBytes("play " + song.getFileName() + ".mp3 " + time);
 	outSocket.close();
     
 	InputStream audioData = inSocket.getInputStream();
