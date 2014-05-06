@@ -62,11 +62,13 @@ parseCommand([Command | Arguments]) ->
     
 play([]) ->
     "No file given!";
-play([File|_]) ->
+play([File|Time]) ->
     FilePath = lists:append("../files/", File),
     case file:read_file(FilePath) of
 	{ok, Binary} ->
-	    binary_to_list(Binary);
+	    %% Send first 20k bytes of file
+	    <<Chunk:20000/binary, Rest/bitstring>> = Binary,
+	    Chunk;
 	{error, Reason} ->
 	    "Could not open file!"
     end.
