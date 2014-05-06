@@ -68,7 +68,7 @@ endif
 
 #Client makefile--------------------------------------------------
 JAVAC := javac
-JAVAC_FLAGS := -cp "client/libs/*:." 
+JAVAC_FLAGS := -cp "client/libs/*:. client/bin/*:client/bin" 
 
 JAVA_FILES := $(wildcard client/src/*.java)
 CLASS_FILES := $(patsubst client/src/%.java,client/bin/%.class,${JAVA_FILES})
