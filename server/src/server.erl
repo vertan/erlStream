@@ -7,7 +7,7 @@
 %%%      Version  : 0.01
 
 -module(server).
--vsn(0.01).
+-vsn(0.1).
 -export([start/0]).
 
 -include_lib("eunit/include/eunit.hrl").
