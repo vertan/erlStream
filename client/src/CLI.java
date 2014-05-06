@@ -64,7 +64,12 @@ public class CLI {
 		break;
 	    case "play":
 		try {
-		    accomodator.play(new Song(command[1], "Unknown Title", "Unknown Artist", "Unknown Album", 60), 0);
+		    int time = 0;
+
+		    if(command.length > 2) {
+			time = Integer.parseInt(command[2]);
+		    }
+		    accomodator.play(new Song(command[1], "Unknown Title", "Unknown Artist", "Unknown Album", 60), time);
 		}
 		catch (Throwable e) {
 		    System.out.println("Error " + e.getMessage());
