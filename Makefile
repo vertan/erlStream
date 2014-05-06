@@ -6,11 +6,11 @@ GROUP_NUMBER := 01
 
 all: server client
 
-clean: clean_server clean_client
-
 test: test_server test_client
 
 doc: doc_server doc_client
+
+clean: clean_server clean_client
 
 
 ##########
@@ -38,17 +38,17 @@ server/ebin/%.beam: server/src/%.erl
 start_server: server
 	(cd server/ebin && erl -eval 'server:start(), init:stop()')
 
-clean_server:
-	rm -fr server/.#* *.dump
-	rm -fr server/ebin/*.dump
-	rm -fr server/ebin/*.beam
-	(cd server/doc/html && find . -name "*" -a ! -name overview.edoc -exec rm -rf {} \;)
-
 test_server: server
 	(cd server/ebin && erl -noinput -eval 'eunit:test({dir, "."}, [verbose]), init:stop()')
 
 doc_server: $(BEAM_FILES)
 	erl -noshell -eval "edoc:files($(EDOC_SRC_LIST), [{dir, 'server/doc/html'}])" -s init stop
+
+clean_server:
+	rm -fr server/.#* *.dump
+	rm -fr server/ebin/*.dump
+	rm -fr server/ebin/*.beam
+	(cd server/doc/html && find . -name "*" -a ! -name overview.edoc -exec rm -rf {} \;)
 
 
 ##########
