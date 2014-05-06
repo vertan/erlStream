@@ -4,6 +4,19 @@ GROUP_NUMBER := 01
 
 .SILENT:
 
+all: server client
+
+clean: clean_server clean_client
+
+test: test_server test_client
+
+doc: doc_server doc_client
+
+
+##########
+# SERVER #
+##########
+
 ERLC := erlc
 ERLC_FLAGS := -W -I server/include
 
@@ -16,22 +29,6 @@ space:= $(empty) $(empty)
 
 EDOC_SRC := $(filter-out server/%_test.erl, $(ERL_FILES))
 EDOC_SRC_LIST := [$(subst $(space),$(comma),$(patsubst server/src/%.erl,'server/src/%.erl', $(EDOC_SRC)))]
-
-REQUIRED_DIR_NAME := pop_2012_project_group_$(GROUP_NUMBER)
-
-PROJECT_DIR := $(notdir $(shell pwd))
-
-USER=$(shell whoami)
-ARCHIVE_NAME :=  $(REQUIRED_DIR_NAME)_archive_$(USER)_$(shell date "+%Y-%m-%d__%H:%M:%S")__.tar.gz
-ARCHIVE_DIR := ..
-
-all:	server client
-
-clean: clean_server clean_client
-
-test: test_server test_client
-
-doc: doc_server doc_client
 
 server: $(BEAM_FILES)
 
@@ -53,6 +50,47 @@ test_server: server
 doc_server: $(BEAM_FILES)
 	erl -noshell -eval "edoc:files($(EDOC_SRC_LIST), [{dir, 'server/doc/html'}])" -s init stop
 
+
+##########
+# CLIENT #
+##########
+
+JAVAC := javac
+JAVA_FLAGS := -cp "../libs/*:. ../bin/*:."
+
+JAVA_FILES := $(wildcard client/src/*.java)
+CLASS_FILES := $(patsubst client/src/%.java,client/src/%.class,${JAVA_FILES})
+
+CLASS_DIR := ../bin
+
+client:	$(JAVA_FILES)
+	(cd client/src && $(JAVAC) $(JAVA_FLAGS) Client.java -d $(CLASS_DIR))
+
+start_client: client
+	(cd client/bin && java $(JAVA_FLAGS) Client)
+
+test_client: client
+
+doc_client:
+	javadoc client/src/*.java -d client/doc/
+
+clean_client:
+	rm -f client/bin/*.class
+	rm -fr client/doc/*
+
+
+#########
+# OTHER #
+#########
+
+REQUIRED_DIR_NAME := pop_2012_project_group_$(GROUP_NUMBER)
+
+PROJECT_DIR := $(notdir $(shell pwd))
+
+USER=$(shell whoami)
+ARCHIVE_NAME :=  $(REQUIRED_DIR_NAME)_archive_$(USER)_$(shell date "+%Y-%m-%d__%H:%M:%S")__.tar.gz
+ARCHIVE_DIR := ..
+
 remove_finderinfo:
 	-xattr -d "com.apple.FinderInfo" server/src/*.erl server/include/*.hrl doc/* server/doc/html/*
 
@@ -65,29 +103,3 @@ ifeq ($(REQUIRED_DIR_NAME), $(PROJECT_DIR))
 else
 	@echo Error: Wrong directory name >$(PROJECT_DIR)<, change to >$(REQUIRED_DIR_NAME)<
 endif
-
-#Client makefile--------------------------------------------------
-JAVAC := javac
-JAVAC_FLAGS := -cp "client/libs/*:. client/bin/*:client/bin" 
-
-JAVA_FILES := $(wildcard client/src/*.java)
-CLASS_FILES := $(patsubst client/src/%.java,client/bin/%.class,${JAVA_FILES})
-
-CLASS_DIR := client/bin
-
-client: $(CLASS_FILES)
-
-client/bin/%.class: client/src/%.java
-	$(JAVAC) $(JAVAC_FLAGS) $< -d $(CLASS_DIR) 
-
-start_client: client
-	(cd client/bin && java -cp "../libs/*:." Client)
-
-test_client: client
-
-doc_client:
-	javadoc client/src/*.java -d client/doc/
-
-clean_client:
-	rm -f client/bin/*.class
-	rm -fr client/doc/*
