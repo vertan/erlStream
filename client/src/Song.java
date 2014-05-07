@@ -14,7 +14,7 @@ public class Song {
      * @param title The title of the song
      * @param album The album of the song
      * @param artist The artist of the song
-     * @param duration The duration of the song
+     * @param duration The duration of the song in seconds
      */
     public Song(String filename, String title, String album, String artist, int duration) {
 	this.filename = filename;
@@ -72,7 +72,7 @@ public class Song {
     /**
      * Returns the duration of this song.
      *
-     * @return The duration of this song in "HH:MM:SS" format
+     * @return The duration of this song in hh:mm:ss format
      */
     public String getDurationString() {
 	int hours = duration / 3600;
@@ -99,7 +99,7 @@ public class Song {
     /**
      * Compares two songs for equality.
      *
-     * @return true if this song is equal to song, else false
+     * @return true if this song is equal to song, false otherwise
      */
     public boolean equals(Song song) {
 	return (song.getFileName().equals(getFileName()) && song.getTitle().equals(getTitle()) &&
