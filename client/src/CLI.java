@@ -91,7 +91,7 @@ public class CLI {
 	System.out.println("Available commands");
 	System.out.println("------------------");
 	if (connected) {
-	    System.out.println("list: List available songs");
+	    System.out.println("list / ls: List available songs");
 	    System.out.println("play <songname>: Play song");
 	}
 	System.out.println("help: Show this dialog");
@@ -116,11 +116,50 @@ public class CLI {
     }
 
     /*
+     * Prints the given songs in a nice fashion.
+     */
+    private void printSongTable(List<Song> songs) {
+	String[] headers = {"Title", "Artist", "Album", "Duration"};
+
+	int longestFileName = headers[0].length();
+	int longestArtist = headers[1].length();
+	int longestAlbum = headers[2].length();
+	int longestDuration = headers[3].length();
+	
+	for (Song song : songs) {
+	    longestFileName = song.getFileName().length() > longestFileName ? song.getFileName().length() : longestFileName;
+	    longestArtist = song.getArtist().length() > longestArtist ? song.getArtist().length() : longestArtist;
+	    longestAlbum = song.getAlbum().length() > longestAlbum ? song.getAlbum().length() : longestAlbum;
+	}
+
+	String format = "%-" + longestFileName + "s  " + "%-" + longestArtist + "s  " + "%-" + 
+	    longestAlbum + "s  " + "%" + longestDuration + "s";
+
+	String top = String.format(format, headers[0], headers[1], headers[2], headers[3]);
+
+	String line = "";
+	for (int i = 0; i < top.length(); i++) {
+	    line += "-";
+	}
+
+	System.out.println("");
+	System.out.println(top);
+	System.out.println(line);
+	
+	for (Song song : songs) {
+	    System.out.printf(format + "\n", song.getFileName(), song.getArtist(),
+			      song.getAlbum(), song.getDurationString());
+	}
+
+	System.out.println("");
+    }
+
+    /*
      * Prints a list with the available songs.
      */
     private void list(List<String> arguments) {
 	if (arguments.size() > 0) {
-	    printUsage("list");
+	    printUsage("list / ls");
 	    return;
 	}
 	
@@ -137,21 +176,7 @@ public class CLI {
 	    return;
 	}
 
-	System.out.println("");
-	System.out.printf("%-18s %-18s %-18s %-18s\n", "Title", "Artist", "Album", "Duration");
-
-	String line = "";
-	for (int i = 0; i < 19 * 4; i++) {
-	    line += "-";
-	}
-	System.out.println(line);
-	
-	for (Song song : songs) {
-	    System.out.printf("%-18s %-18s %-18s %-18s\n", song.getFileName(), song.getArtist(),
-			      song.getAlbum(), song.getDurationString());
-	}
-
-	System.out.println("");
+	printSongTable(songs);
     }
     
     /*
@@ -163,6 +188,7 @@ public class CLI {
 	    return;
 	}
 	
+	Song song = new Song(arguments.get(0), "Unknown Title", "Unknown Artist", "Unknown Album", 60);
 	int offset = 0;
 	
 	if(arguments.size() > 1) {
@@ -172,10 +198,10 @@ public class CLI {
 		printUsage("play <songname> / play <songname> <time>");
 		return;
 	    }
-	}
+	}	
 	
 	try {
-	    accomodator.play(new Song(arguments.get(0), "Unknown Title", "Unknown Artist", "Unknown Album", 60), offset);
+	    accomodator.play(song, offset);
 	} catch (ConnectException e) {
 	    printError("Failed to connect to server!");
 	} catch (Throwable e) {
@@ -196,6 +222,10 @@ public class CLI {
 	    command.remove(0);
 	    list(command);
 	    break;
+	case "ls":
+	    command.remove(0);
+	    list(command);
+	    break;
 	case "play":
 	    command.remove(0);
 	    play(command);
@@ -213,7 +243,8 @@ public class CLI {
 	case "":
 	    break;
 	default:
-	    System.out.println("Unknown command '" + command.get(0).toLowerCase() + "'. Type 'help' to see available options.");
+	    System.out.println("Unknown command '" + command.get(0).toLowerCase() + 
+			       "'. Type 'help' to see available options.");
 	}	
     }
 
