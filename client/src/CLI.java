@@ -11,7 +11,7 @@ import java.net.*;
  *
  * @see Communicator
  */
-public class CLI {
+public class CLI extends UI {
     private Communicator accomodator;
     private boolean quitPending, connected;
     private Scanner sc;
