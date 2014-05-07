@@ -2,6 +2,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.*;
+import java.net.*;
 
 /**
  * The CLI class provides a Command Line Interface for the Communicator module.
@@ -12,9 +13,8 @@ import java.io.*;
  */
 public class CLI {
     private Communicator accomodator;
-    private boolean running, connected;
+    private boolean quitPending, connected;
     private Scanner sc;
-    private String input;
 
     /**
      * Initializes a newly created CLI object.
@@ -27,13 +27,29 @@ public class CLI {
      * Prompts for server address and returns true if a connection is established.
      */
     private boolean setupConnection() {
+	return connect(new ArrayList<String>());
+    }
+
+    /*
+     * Connects to a server and returns true if succeeded.
+     */
+    private boolean connect(List<String> arguments) {
+	if (arguments.size() > 1) {
+	    printUsage("connect / connect <address>");
+	    return false;
+	}
+
 	String address = "localhost";
 
-	System.out.print("Server address (Press RETURN for localhost): ");
-	input = sc.nextLine();
-
-	if (!input.equals("")) {
-	    address = input;
+	if (arguments.size() > 0) {
+	    address = arguments.get(0);
+	} else {
+	    System.out.print("Server address (Press RETURN for localhost): ");
+	    String input = sc.nextLine();
+	    
+	    if (!input.equals("")) {
+		address = input;
+	    }
 	}
 
 	accomodator = new Communicator(address, 1341, 1340);
@@ -54,10 +70,17 @@ public class CLI {
     }
 
     /*
-     * Prints a message prepended with "Error: ".
+     * Prints a string prepended with "Error: ".
      */
     private void printError(String message) {
 	System.out.println("Error: " + message);
+    }
+
+    /*
+     * Prints a string prepended with "Usage: ".
+     */
+    private void printUsage(String instruction) {
+	System.out.println("Usage: " + instruction);
     }
 
     /*
@@ -72,72 +95,126 @@ public class CLI {
 	    System.out.println("play <songname>: Play song");
 	}
 	System.out.println("help: Show this dialog");
-	System.out.println("connect: Change server");
+	System.out.println("connect <address>: Change server");
 	System.out.println("quit: Exit the client");
 	System.out.println("");
     }
 
     /*
-     * Runs the CLI.
+     * Returns a list with the words in a string.
      */
-    private void run() {
-	running = true;
-	printHelp();
-	
-	while(running) {
-	    System.out.print("> ");
-	    input = sc.nextLine();
-	    String[] command = input.split(" ");
-	    
-	    switch(command[0]) {
-	    case "list":
-		try {
-		    List<Song> songs = accomodator.list();		    
-		    for (int i = 0; i < songs.size(); i++) {
-			System.out.println(songs.get(i).getFileName());
-		    }
-		} catch (Throwable e) {
-		    System.out.println("Error " + e.getMessage());
-		    e.printStackTrace();
-		}
+    private List<String> stringToCommand(String input) {
+	String[] splitInput = input.trim().split("\\s+");
 
-		break;
-	    case "play":
-		try {
-		    int offset = 0;
-		    
-		    if(command.length > 2) {
-			offset = Integer.parseInt(command[2]);
-		    }
-		    accomodator.play(new Song(command[1], "Unknown Title", "Unknown Artist", "Unknown Album", 60), offset);
-		} catch (Throwable e) {
-		    System.out.println("Error " + e.getMessage());
-		    e.printStackTrace();
-		}
-		break;
-	    case "help":
-		printHelp();
-		break;
-	    case "connect":
-		setupConnection();
-		break;
-	    case "quit":
-		running = false;
-		break;
-	    default:
-		System.out.println("Unknown command, type 'help' to see available options.");
+	List<String> command = new ArrayList<String>();
+
+	for (String s : splitInput) {
+	    command.add(s);
+	}
+
+	return command;
+    }
+
+    /*
+     * Prints a list with the available songs.
+     */
+    private void list(List<String> arguments) {
+	if (arguments.size() > 0) {
+	    printUsage("list");
+	    return;
+	}
+
+	try {
+	    List<Song> songs = accomodator.list();		    
+	    for (int i = 0; i < songs.size(); i++) {
+		System.out.println(songs.get(i).getFileName());
+	    }
+	} catch (ConnectException e) {
+	    printError("Failed to connect to server!");
+	} catch (Throwable e) {
+	    System.out.println("Error " + e.getMessage());
+	    e.printStackTrace();
+	}
+    }
+
+    /*
+     * Plays a song.
+     */
+    private void play(List<String> arguments) {
+	if (arguments.size() < 1 || arguments.size() > 2) {
+	    printUsage("play <songname> / play <songname> <time>");
+	    return;
+	}
+	
+	int offset = 0;
+	
+	if(arguments.size() > 1) {
+	    try {
+		offset = Integer.parseInt(arguments.get(1));
+	    } catch (NumberFormatException e) {
+		printUsage("play <songname> / play <songname> <time>");
+		return;
 	    }
 	}
+	
+	try {
+	    accomodator.play(new Song(arguments.get(0), "Unknown Title", "Unknown Artist", "Unknown Album", 60), offset);
+	} catch (ConnectException e) {
+	    printError("Failed to connect to server!");
+	} catch (Throwable e) {
+	    System.out.println("Error " + e.getMessage());
+	    e.printStackTrace();
+	}
+    }
+
+    /*
+     * Parses the users input and takes appropriate action.
+     */
+    private void parseInput(String input) {
+	List<String> command = stringToCommand(input);
+	if (command.size() == 0) return;
+	
+	switch(command.get(0).toLowerCase()) {
+	case "list":
+	    command.remove(0);
+	    list(command);
+	    break;
+	case "play":
+	    command.remove(0);
+	    play(command);
+	    break;
+	case "help":
+	    printHelp();
+	    break;
+	case "connect":
+	    command.remove(0);
+	    connect(command);
+	    break;
+	case "quit":
+	    quitPending = true;
+	    break;
+	case "":
+	    break;
+	default:
+	    System.out.println("Unknown command '" + command.get(0).toLowerCase() + "'. Type 'help' to see available options.");
+	}	
     }
 
     /**
      * Starts the CLI.
      */
     public void start() {
-	if (setupConnection()) {
-	    run();
+	setupConnection();
+
+	if (connected) {
+	    printHelp();
+
+	    while(!quitPending) {
+		System.out.print("> ");
+		parseInput(sc.nextLine());
+	    }
 	}
 	
 	System.out.println("Client exited.");
-    }    
+    }
 }
