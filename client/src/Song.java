@@ -68,4 +68,42 @@ public class Song {
     public int getDuration() {
 	return this.duration;
     }
+
+    /**
+     * Returns the duration of this song.
+     *
+     * @return The duration of this song in "HH:MM:SS" format
+     */
+    public String getDurationString() {
+	int hours = duration / 3600;
+	int minutes = (duration % 3600) / 60;
+	int seconds = duration % 60;
+
+	return twoDigitString(hours) + ":" + twoDigitString(minutes) + ":" + twoDigitString(seconds);
+    }
+
+    private String twoDigitString(int number) {
+	if (number / 10 == 0) return "0" + number;
+	return String.valueOf(number);
+    }
+
+    /**
+     * Returns the filename of this song.
+     *
+     * @return The filename of this song
+     */
+    public String toString() {
+	return this.filename;
+    }
+    
+    /**
+     * Compares two songs for equality.
+     *
+     * @return true if this song is equal to song, else false
+     */
+    public boolean equals(Song song) {
+	return (song.getFileName().equals(getFileName()) && song.getTitle().equals(getTitle()) &&
+		song.getAlbum().equals(getAlbum()) && song.getArtist().equals(getArtist()) &&
+		song.getDuration() == getDuration());
+    }
 }

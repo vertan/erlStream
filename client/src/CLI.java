@@ -123,20 +123,37 @@ public class CLI {
 	    printUsage("list");
 	    return;
 	}
-
+	
+	List<Song> songs;
+	
 	try {
-	    List<Song> songs = accomodator.list();		    
-	    for (int i = 0; i < songs.size(); i++) {
-		System.out.println(songs.get(i).getFileName());
-	    }
+	    songs = accomodator.list();
 	} catch (ConnectException e) {
 	    printError("Failed to connect to server!");
+	    return;
 	} catch (Throwable e) {
 	    System.out.println("Error " + e.getMessage());
 	    e.printStackTrace();
+	    return;
 	}
-    }
 
+	System.out.println("");
+	System.out.printf("%-18s %-18s %-18s %-18s\n", "Title", "Artist", "Album", "Duration");
+
+	String line = "";
+	for (int i = 0; i < 19 * 4; i++) {
+	    line += "-";
+	}
+	System.out.println(line);
+	
+	for (Song song : songs) {
+	    System.out.printf("%-18s %-18s %-18s %-18s\n", song.getFileName(), song.getArtist(),
+			      song.getAlbum(), song.getDurationString());
+	}
+
+	System.out.println("");
+    }
+    
     /*
      * Plays a song.
      */
