@@ -91,6 +91,8 @@ public class CLI extends UI {
 	if (connected) {
 	    System.out.println("list / ls: List available songs");
 	    System.out.println("play <songname>: Play song");
+	    System.out.println("stop: Stop the playback");
+	    System.out.println("status: Get status information");
 	}
 	System.out.println("help: Show this dialog");
 	System.out.println("connect <address>: Change server");
@@ -200,11 +202,38 @@ public class CLI extends UI {
 	
 	try {
 	    player.playSongByTitle(arguments.get(0), offset);
+	    System.out.println("Playback Started...");
 	} catch (ConnectException e) {
 	    printError("Failed to connect to server!");
 	} catch (Throwable e) {
 	    System.out.println("Error " + e.getMessage());
 	    e.printStackTrace();
+	}
+    }
+
+    /*
+     * Stops the currently playing song.
+     */
+    private void stop() {
+	try {
+	    player.stop();
+	    System.out.println("Playback Stopped.");
+	} catch (Throwable e) {
+	    System.out.println("Error " + e.getMessage());
+	    e.printStackTrace();
+	}
+    }
+
+    /*
+     * Prints status information.
+     */
+    private void status() {
+	Song currentSong = player.getCurrentSong();
+
+	if (currentSong == null) {
+	    System.out.println("No song currently playing.");
+	} else {
+	    System.out.println("Playing " + currentSong.getFileName() + ".");
 	}
     }
 
@@ -227,6 +256,12 @@ public class CLI extends UI {
 	case "play":
 	    command.remove(0);
 	    play(command);
+	    break;
+	case "stop":
+	    stop();
+	    break;
+	case "status":
+	    status();
 	    break;
 	case "help":
 	    printHelp();

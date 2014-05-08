@@ -20,12 +20,14 @@ public class AudioManager {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();
 	    }
+	    currentSong = null;
 	}
     }
 
     private Communicator communicator;
     private AdvancedPlayer player;
     private List<Song> songs;
+    private Song currentSong;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -44,6 +46,7 @@ public class AudioManager {
      * @param song The song to play
      */
     public void play(Song song, int offset) throws Exception {
+	currentSong = song;
 	InputStream audio = communicator.play(song, offset);
 	player = new AdvancedPlayer(audio);
 	new Thread(new PlayerThread()).start();
@@ -55,8 +58,8 @@ public class AudioManager {
      * @param title The title of the song 
      */
     public void playSongByTitle(String title, int offset) throws Exception {
-	Song song = new Song(title, "Unknown Title", "Unknown Artist", "Unknown Album", 60);
-	InputStream audio = communicator.play(song, offset);
+	currentSong = new Song(title, "Unknown Title", "Unknown Artist", "Unknown Album", 60);
+	InputStream audio = communicator.play(currentSong, offset);
 	player = new AdvancedPlayer(audio);
 	new Thread(new PlayerThread()).start();
     }
@@ -72,7 +75,7 @@ public class AudioManager {
      * Stops the playback.
      */
     public void stop() {
-
+	player.close();
     }
 
     /**
@@ -87,6 +90,15 @@ public class AudioManager {
      */
     public void previous() {
 	
+    }
+
+    /**
+     * Returns the currently playing song.
+     *
+     * @return The currently playing song
+     */
+    public Song getCurrentSong() {
+	return currentSong;
     }
 
     /**
