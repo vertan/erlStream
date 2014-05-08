@@ -68,18 +68,17 @@ parseCommand([Command | Arguments]) ->
     
 play([]) ->
     "No file given!";
-play([File|StartTime]) ->
+play([File|OffsetTime]) ->
     FilePath = lists:append("../files/", File),
-    [CurrentTime|_] = StartTime,
+    Bitrate = 192000,
+    StartChunkSize = 100000,
+    [StartTime|_] = OffsetTime,
+    {StartSecond, StartRest} = string:to_integer(StartTime),
+    StartOffset = StartSecond * Bitrate,
     case file:read_file(FilePath) of
 	{ok, Binary} ->
-	    RequestedSize = string:to_integer(CurrentTime),
-	    {ChunkSize, SizeRest} = RequestedSize,
-	    %ChunkPart = binary:part(Binary, {byte_size(Binary), ChunkSize}),
-	    %% Send first 20k bytes of file
-	    io:format("Chunksize: ~p~n", [ChunkSize]),
-	    <<Chunk:ChunkSize/binary, Rest/bitstring>> = Binary,
-	    {song, Chunk, Rest};
+	    <<OffsetChunk:StartOffset/binary, StartChunk:StartChunkSize/binary, RestChunk/bitstring>> = Binary,
+	    {song, StartChunk, RestChunk};
 	{error, Reason} ->
 	    "Could not open file!"
     end.
