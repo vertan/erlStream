@@ -70,7 +70,7 @@ play([]) ->
     "No file given!";
 play([File|OffsetTime]) ->
     FilePath = lists:append("../files/", File),
-    Bitrate = 192000,
+    Bitrate = 192000/8,
     StartChunkSize = 100000,
     [StartTime|_] = OffsetTime,
     {StartSecond, StartRest} = string:to_integer(StartTime),
