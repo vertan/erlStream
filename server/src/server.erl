@@ -46,8 +46,8 @@ loop(InSocket, OutSocket, Message) ->
 		{song, Data} ->
 		    spawn(fun() -> send_data(OutSocket, Data) end);
 		_ ->
-		    spawn(fun() -> send_data(OutSocket, ReturnMessage) end);
-	    end,
+		    spawn(fun() -> send_data(OutSocket, ReturnMessage) end)
+	    end;
 	{error,Reason} ->
 	    io:format("Error: ~s~n", [Reason])
     end.
