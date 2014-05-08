@@ -28,7 +28,6 @@ public class Communicator {
 	this.address = address;
 	this.inPort = inPort;
 	this.outPort = outPort;
-	inSocket = new Socket(address, inPort);
     }
 
     /*
@@ -43,6 +42,7 @@ public class Communicator {
      * Initializes the variables inSocket, outSocket, toServer and fromServer.
      */
     private void initConnection() throws Exception {
+	inSocket = new Socket(address, inPort);
 	outSocket = new Socket(address, outPort);
 	toServer = new DataOutputStream(outSocket.getOutputStream());
 	fromServer = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
