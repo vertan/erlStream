@@ -123,6 +123,7 @@ public class CLI extends UI {
 	int longestArtist = headers[1].length();
 	int longestAlbum = headers[2].length();
 	int longestDuration = headers[3].length();
+	int longestIndex = String.valueOf(songs.size()).length() + 1;
 	
 	for (Song song : songs) {
 	    longestFileName = song.getFileName().length() > longestFileName ? song.getFileName().length() : longestFileName;
@@ -130,10 +131,10 @@ public class CLI extends UI {
 	    longestAlbum = song.getAlbum().length() > longestAlbum ? song.getAlbum().length() : longestAlbum;
 	}
 
-	String format = "%-" + longestFileName + "s  " + "%-" + longestArtist + "s  " + "%-" + 
-	    longestAlbum + "s  " + "%" + longestDuration + "s";
+	String format = "%-" + longestIndex + "s " + "%-" + longestFileName + "s  " + "%-" + 
+	    longestArtist + "s  " + "%-" + longestAlbum + "s  " + "%" + longestDuration + "s";
 
-	String top = String.format(format, headers[0], headers[1], headers[2], headers[3]);
+	String top = String.format(format, "", headers[0], headers[1], headers[2], headers[3]);
 
 	String line = "";
 	for (int i = 0; i < top.length(); i++) {
@@ -144,9 +145,9 @@ public class CLI extends UI {
 	System.out.println(top);
 	System.out.println(line);
 	
-	for (Song song : songs) {
-	    System.out.printf(format + "\n", song.getFileName(), song.getArtist(),
-			      song.getAlbum(), song.getDurationString());
+	for (int i = 0; i < songs.size(); i++) {
+	    System.out.printf(format + "\n", (i+1) + ".", songs.get(i).getFileName(), songs.get(i).getArtist(),
+			      songs.get(i).getAlbum(), songs.get(i).getDurationString());
 	}
 
 	System.out.println("");
@@ -186,7 +187,6 @@ public class CLI extends UI {
 	    return;
 	}
 	
-	Song song = new Song(arguments.get(0), "Unknown Title", "Unknown Artist", "Unknown Album", 60);
 	int offset = 0;
 	
 	if(arguments.size() > 1) {
@@ -199,7 +199,7 @@ public class CLI extends UI {
 	}	
 	
 	try {
-	    player.play(song, offset);
+	    player.playSongByTitle(arguments.get(0), offset);
 	} catch (ConnectException e) {
 	    printError("Failed to connect to server!");
 	} catch (Throwable e) {
@@ -260,6 +260,8 @@ public class CLI extends UI {
 		parseInput(sc.nextLine());
 	    }
 	}
+
+	sc.close();
 	
 	System.out.println("Client exited.");
     }
