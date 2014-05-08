@@ -12,6 +12,17 @@ import java.net.*;
  * @see Communicator
  */
 public class AudioManager {
+    private class PlayerThread implements Runnable {
+	public void run() {
+	    try {
+		player.play();
+	    } catch (Throwable e) {
+		System.out.println("Error " + e.getMessage());
+		e.printStackTrace();
+	    }
+	}
+    }
+
     private Communicator communicator;
     private AdvancedPlayer player;
     private List<Song> songs;
@@ -35,7 +46,7 @@ public class AudioManager {
     public void play(Song song, int offset) throws Exception {
 	InputStream audio = communicator.play(song, offset);
 	player = new AdvancedPlayer(audio);
-	player.play();
+	new Thread(new PlayerThread()).start();
     }
 
     /**
@@ -47,7 +58,7 @@ public class AudioManager {
 	Song song = new Song(title, "Unknown Title", "Unknown Artist", "Unknown Album", 60);
 	InputStream audio = communicator.play(song, offset);
 	player = new AdvancedPlayer(audio);
-	player.play();	
+	new Thread(new PlayerThread()).start();
     }
 
     /**
