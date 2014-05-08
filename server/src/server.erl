@@ -25,8 +25,8 @@
 
 start() ->
     io:format("Welcome to the server!~n"),
-    {ok,InSocket} = gen_tcp:listen(1340, [{active, false}]),
-    {ok,OutSocket} = gen_tcp:listen(1341, [{active, false}]),
+    {ok,InSocket} = gen_tcp:listen(1340, [{active, false}, {reuseaddr, true}]),
+    {ok,OutSocket} = gen_tcp:listen(1341, [{active, false}, {reuseaddr, true}]),
     accept(InSocket, OutSocket).
 
 accept(InSocket, OutSocket) ->
@@ -42,7 +42,13 @@ loop(InSocket, OutSocket, Message) ->
 	{error, closed} ->
 	    io:format("Command received: ~p~n", [Message]),
 	    ReturnMessage = parseCommand(string:tokens(Message, " ")),
-	    gen_tcp:send(OutSocket, ReturnMessage),
+	    case ReturnMessage of
+		{song, Chunk, Rest} ->
+		    gen_tcp:send(OutSocket, Chunk),
+		    gen_tcp:send(OutSocket, Rest);
+		_ ->
+		    gen_tcp:send(OutSocket, ReturnMessage)
+	    end,
 	    gen_tcp:close(OutSocket);
 	{error,Reason} ->
 	    io:format("Error: ~s~n", [Reason])
@@ -62,13 +68,17 @@ parseCommand([Command | Arguments]) ->
     
 play([]) ->
     "No file given!";
-play([File|Time]) ->
+play([File|OffsetTime]) ->
     FilePath = lists:append("../files/", File),
+    Bitrate = 192000,
+    StartChunkSize = 100000,
+    [StartTime|_] = OffsetTime,
+    {StartSecond, StartRest} = string:to_integer(StartTime),
+    StartOffset = StartSecond * Bitrate,
     case file:read_file(FilePath) of
 	{ok, Binary} ->
-	    %% Send first 20k bytes of file
-	    <<Chunk:20000/binary, Rest/bitstring>> = Binary,
-	    Chunk;
+	    <<OffsetChunk:StartOffset/binary, StartChunk:StartChunkSize/binary, RestChunk/bitstring>> = Binary,
+	    {song, StartChunk, RestChunk};
 	{error, Reason} ->
 	    "Could not open file!"
     end.
