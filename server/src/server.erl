@@ -25,8 +25,8 @@
 
 start() ->
     io:format("Welcome to the server!~n"),
-    {ok,InSocket} = gen_tcp:listen(1340, [{active, false}]),
-    {ok,OutSocket} = gen_tcp:listen(1341, [{active, false}]),
+    {ok,InSocket} = gen_tcp:listen(1340, [{active, false}, {reuseaddr, true}]),
+    {ok,OutSocket} = gen_tcp:listen(1341, [{active, false}, {reuseaddr, true}]),
     accept(InSocket, OutSocket).
 
 accept(InSocket, OutSocket) ->
