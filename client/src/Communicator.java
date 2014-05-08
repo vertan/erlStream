@@ -24,10 +24,11 @@ public class Communicator {
      * @param inPort The port to read data from
      * @param outPort The port to write data to
      */
-    public Communicator(String address, int inPort, int outPort) {
+    public Communicator(String address, int inPort, int outPort) throws Exception {
 	this.address = address;
 	this.inPort = inPort;
 	this.outPort = outPort;
+	inSocket = new Socket(address, inPort);
     }
 
     /*
@@ -42,10 +43,26 @@ public class Communicator {
      * Initializes the variables inSocket, outSocket, toServer and fromServer.
      */
     private void initConnection() throws Exception {
-	inSocket = new Socket(address, inPort);
 	outSocket = new Socket(address, outPort);
 	toServer = new DataOutputStream(outSocket.getOutputStream());
 	fromServer = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
+    }
+
+    /**
+     * Checks whether the server is reachable or not.
+     *
+     * @return true if the server is reachable, false otherwise
+     */
+    public boolean ping() {
+	try {
+	    initConnection();
+	}
+	catch (Throwable e) {
+	    System.out.println("Error " + e.getMessage());
+	    e.printStackTrace();
+	    return false;
+	}
+	return true;
     }
     
     /**
@@ -63,7 +80,7 @@ public class Communicator {
 	String filename;
 
 	while((filename = fromServer.readLine()) != null) {
-	    songs.add(new Song(getBaseName(filename), "Unknown Title", "Unknown Artist", "Unknown Album", 60));
+	    songs.add(new Song(getBaseName(filename), "Unknown Title", "Unknown Album", "Unknown Artist", 60));
 	}
 
 	return songs;
@@ -74,20 +91,15 @@ public class Communicator {
      *
      * @param song The song to play 
      * @param offset The number of seconds to skip ahead
-     * @return true if the file exists on the server and the playback succeeded, else false
+     * @return true if the file exists on the server and the playback succeeded, false otherwise
      * @see Song
      */
-    public boolean play(Song song, int offset) throws Exception {
+    public InputStream play(Song song, int offset) throws Exception {
 	initConnection();
 	toServer.writeBytes("play " + song.getFileName() + ".mp3 " + offset);
 	outSocket.close();
     
-	InputStream audioData = inSocket.getInputStream();
-	AdvancedPlayer musicPlayer = new AdvancedPlayer(audioData);
-	musicPlayer.play();
-
-	// TODO: Check whether playback succeeded
-	return true;
+	return inSocket.getInputStream();
     }
 
     /**

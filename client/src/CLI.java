@@ -5,14 +5,14 @@ import java.io.*;
 import java.net.*;
 
 /**
- * The CLI class provides a Command Line Interface for the Communicator module.
+ * The CLI class provides a Command Line Interface for the AudioManager module.
  *
  * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
  *
  * @see Communicator
  */
 public class CLI extends UI {
-    private Communicator accomodator;
+    private AudioManager player;
     private boolean quitPending, connected;
     private Scanner sc;
 
@@ -52,19 +52,17 @@ public class CLI extends UI {
 	    }
 	}
 
-	accomodator = new Communicator(address, 1341, 1340);
-
 	System.out.print("Connecting... ");
 
-	// TODO: Verify connection
-
-	if (true) {
-	    System.out.println("connected!");
-	    connected = true;
-	} else {
+	try {
+	    player = new AudioManager(address, 1341, 1340);
+	} catch (Throwable e) {
 	    System.out.println("fail!");
 	    connected = false;
 	}
+
+	System.out.println("connected!");
+	connected = true;
 
 	return connected;
     }
@@ -166,7 +164,7 @@ public class CLI extends UI {
 	List<Song> songs;
 	
 	try {
-	    songs = accomodator.list();
+	    songs = player.getSongs();
 	} catch (ConnectException e) {
 	    printError("Failed to connect to server!");
 	    return;
@@ -201,7 +199,7 @@ public class CLI extends UI {
 	}	
 	
 	try {
-	    accomodator.play(song, offset);
+	    player.play(song, offset);
 	} catch (ConnectException e) {
 	    printError("Failed to connect to server!");
 	} catch (Throwable e) {
