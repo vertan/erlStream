@@ -201,6 +201,8 @@ public class CLI extends UI {
 	
 	try {
 	    player.playSongByTitle(arguments.get(0), offset);
+	    Song song = player.getCurrentSong();
+	    System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
 	} catch (AudioManager.BadSongException e) {
 	    System.out.println("There is no song titled \"" + arguments.get(0) + "\".");
 	} catch (ConnectException e) {
@@ -235,11 +237,11 @@ public class CLI extends UI {
 	Song currentSong = player.getCurrentSong();
 
 	if (player.isPlaying()) {
-	    String elapsedTime = Song.secondsToString(player.getElapsedPlaybackTime());
+	    String elapsedTime = Song.secondsToString(player.getPosition());
 	    System.out.println("Playing: \"" + currentSong.getFileName() + "\" by " + currentSong.getArtist() + 
 			       " [" + elapsedTime + " / " + currentSong.getDurationString() + "]");
 	} else if (player.isPaused()) {
-	    String elapsedTime = Song.secondsToString(player.getElapsedPlaybackTime());
+	    String elapsedTime = Song.secondsToString(player.getPosition());
 	    System.out.println("Paused: \"" + currentSong.getFileName() + "\" by " + currentSong.getArtist() + 
 			       " [" + elapsedTime + " / " + currentSong.getDurationString() + "]");
 	} else {
@@ -254,7 +256,8 @@ public class CLI extends UI {
 	if (player.isPlaying()) {
 	    try {
 		player.next();
-		Song currentSong = player.getCurrentSong();
+		Song song = player.getCurrentSong();
+		System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();
@@ -271,7 +274,8 @@ public class CLI extends UI {
 	if (player.isPlaying()) {
 	    try {
 		player.previous();
-		Song currentSong = player.getCurrentSong();
+		Song song = player.getCurrentSong();
+		System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();

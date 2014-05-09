@@ -1,6 +1,6 @@
 import java.util.List;
 import java.util.ArrayList;
-import javazoom.jl.player.advanced.AdvancedPlayer;
+import javazoom.jl.player.advanced.*;
 import java.io.*;
 import java.net.*;
 import java.util.Random;
@@ -13,14 +13,27 @@ import java.util.Random;
  * @see Communicator
  */
 public class AudioManager {
+    private class TransitionHandler extends PlaybackListener {
+	public void playbackStarted(PlaybackEvent e) {
+	    playing = true;
+	}
+
+	public void playbackFinished(PlaybackEvent e) {
+	    try {
+		next();
+	    } catch (Throwable t) {
+		t.printStackTrace();
+	    }
+	}
+    }
+
     private class PlayerThread implements Runnable {
 	public void run() {
 	    try {
 		player.play();
-		next();
 	    } catch (Throwable e) {
-		System.out.println("Error " + e.getMessage());
-		e.printStackTrace();
+		playing = false;
+		currentSong = null;
 	    }
 	}
     }
@@ -33,9 +46,10 @@ public class AudioManager {
 
     private Communicator communicator;
     private AdvancedPlayer player;
+    private PlaybackListener listener;
     private List<Song> songs;
     private Song currentSong;
-    private boolean shuffle, repeat;
+    private boolean playing, shuffle, repeat;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -46,6 +60,7 @@ public class AudioManager {
      */
     public AudioManager(String address, int inPort, int outPort) throws Exception {
 	communicator = new Communicator(address, inPort, outPort);
+	listener = new TransitionHandler();
 	songs = new ArrayList<Song>();
     }
 
@@ -60,13 +75,14 @@ public class AudioManager {
 	    throw new BadSongException(song.getTitle());
 	}
 
-	if (isPlaying()) stop();
+	if (isPlaying()) player.close();
 	
 	currentSong = song;
+
 	InputStream audio = communicator.play(song, offset);
 	player = new AdvancedPlayer(audio);
+	player.setPlayBackListener(listener);
 
-	System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
 	new Thread(new PlayerThread()).start();
     }
 
@@ -126,6 +142,7 @@ public class AudioManager {
     public void stop() {
 	if (player != null) {
 	    player.close();
+	    playing = false;
 	    currentSong = null;
 	}
     }
@@ -135,16 +152,26 @@ public class AudioManager {
      */
     public void next() throws Exception {
 	if (isPlaying()) {
+	    Song next;
+
 	    if (shuffleIsOn()) {
-		Song nextSong = songs.get(new Random().nextInt(songs.size()) - 1);
-		stop();
-		play(nextSong, 0);
+		next = songs.get(new Random().nextInt(songs.size()) - 1);
 	    } else {
-		// TODO: Check repeat
 		int currentSongIndex = songs.indexOf(currentSong);
-		Song nextSong = songs.get((currentSongIndex + 1) % songs.size());
+
+		if ((currentSongIndex == (songs.size() + 1)) && !repeatIsOn() ) { // If last and repeat off
+		    stop();
+		    return;
+		}
+
+		next = songs.get((currentSongIndex + 1) % songs.size());
+	    }
+
+	    try {
+		play(next, 0);		    
+	    } catch (BadSongException e) { // Should not happen, but just in case
 		stop();
-		play(nextSong, 0);
+		throw e;
 	    }
 	}
     }
@@ -153,25 +180,27 @@ public class AudioManager {
      * Plays the previous song in the queue.
      */
     public void previous() throws Exception {
-	// TODO: Implement history
 	if (isPlaying()) {
+	    // TODO: Implement history?
+	    Song next;
+	
 	    if (shuffleIsOn()) {
-		Song nextSong = songs.get(new Random().nextInt(songs.size()) - 1);
-		stop();
-		play(nextSong, 0);
+		next = songs.get(new Random().nextInt(songs.size()) - 1);
 	    } else {
-		// TODO: Check repeat
 		int currentSongIndex = songs.indexOf(currentSong);
 
-		Song nextSong;
 		if (currentSongIndex < 1) {
-		    nextSong = songs.get(songs.size() - 1);
+		    next = songs.get(songs.size() - 1);
 		} else {
-		    nextSong = songs.get(currentSongIndex - 1);
+		    next = songs.get(currentSongIndex - 1);
 		}
+	    }
 
+	    try {
+		play(next, 0);		    
+	    } catch (BadSongException e) { // Should not happen, but just in case
 		stop();
-		play(nextSong, 0);
+		throw e;
 	    }
 	}
     }
@@ -186,11 +215,11 @@ public class AudioManager {
     }
 
     /**
-     * Returns the elapsed time of the song currently playing.
+     * Returns the current playback position in seconds.
      *
-     * @return The elapsed time of the song currently playing in seconds.
+     * @return The current playback position in seconds
      */
-    public int getElapsedPlaybackTime() {
+    public int getPosition() {
 	return 0;
     }
 
@@ -200,7 +229,7 @@ public class AudioManager {
      * @return true if a song is currently playing, false otherwise
      */
     public boolean isPlaying() {
-	return currentSong != null;
+	return playing;
     }
 
     /**
@@ -209,7 +238,7 @@ public class AudioManager {
      * @return true if a song is paused, false otherwise
      */
     public boolean isPaused() {
-	return false;
+	return (playing &&  currentSong != null);
     }
 
     /**
