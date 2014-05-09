@@ -93,6 +93,7 @@ public class CLI extends UI {
 	if (connected) {
 	    System.out.printf(format, "ls", "List available songs");
 	    System.out.printf(format, "play <Title>", "Play song");
+	    System.out.printf(format, "pause", "Pause the current song");
 	    System.out.printf(format, "next", "Play the next song in the queue");
 	    System.out.printf(format, "previous",  "Play the previous song in the queue");
 	    System.out.printf(format, "stop", "Stop the playback");
@@ -195,13 +196,14 @@ public class CLI extends UI {
 	    try {
 		player.play();
 		Song song = player.getCurrentSong();
-		System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
+		String elapsedTime = Song.secondsToString(player.getPosition());
+		System.out.println("Playing: \"" + song.getFileName() + "\" by " + song.getArtist() + 
+				   " [" + elapsedTime + " / " + song.getDurationString() + "]");
 		return;
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();
 	    }
-
 	}
 
 	if (arguments.size() > 2) {
@@ -223,7 +225,9 @@ public class CLI extends UI {
 	try {
 	    player.playSongByTitle(arguments.get(0), offset);
 	    Song song = player.getCurrentSong();
-	    System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
+	    String elapsedTime = Song.secondsToString(player.getPosition());
+	    System.out.println("Playing: \"" + song.getFileName() + "\" by " + song.getArtist() + 
+			       " [" + elapsedTime + " / " + song.getDurationString() + "]");
 	} catch (AudioManager.BadSongException e) {
 	    System.out.println("There is no song titled \"" + arguments.get(0) + "\".");
 	} catch (ConnectException e) {
@@ -235,10 +239,24 @@ public class CLI extends UI {
     }
 
     /*
-     * Stops the currently playing song.
+     * Pauses the current song.
+     */
+    private void pause() {
+	if (player.isPlaying()) {
+	    player.pause();
+	    System.out.println("Playback paused.");
+	} else if (player.isPaused()) {
+	    System.out.println("Already paused.");
+	} else {
+	    System.out.println("No song is playing.");
+	}
+    }
+
+    /*
+     * Stops the current song.
      */
     private void stop() {
-	if (player.isPlaying()) {
+	if (player.isPlaying() || player.isPaused()) {
 	    try {
 		player.stop();
 		System.out.println("Playback stopped.");
@@ -255,16 +273,12 @@ public class CLI extends UI {
      * Prints status information.
      */
     private void status() {
-	Song currentSong = player.getCurrentSong();
-
-	if (player.isPlaying()) {
+	if (player.isPlaying() || player.isPaused()) {
+	    Song song = player.getCurrentSong();
+	    String state = player.isPlaying() ? "Playing" : "Paused";
 	    String elapsedTime = Song.secondsToString(player.getPosition());
-	    System.out.println("Playing: \"" + currentSong.getFileName() + "\" by " + currentSong.getArtist() + 
-			       " [" + elapsedTime + " / " + currentSong.getDurationString() + "]");
-	} else if (player.isPaused()) {
-	    String elapsedTime = Song.secondsToString(player.getPosition());
-	    System.out.println("Paused: \"" + currentSong.getFileName() + "\" by " + currentSong.getArtist() + 
-			       " [" + elapsedTime + " / " + currentSong.getDurationString() + "]");
+	    System.out.println(state + ": \"" + song.getFileName() + "\" by " + song.getArtist() + 
+			       " [" + elapsedTime + " / " + song.getDurationString() + "]");
 	} else {
 	    System.out.println("Stopped.");
 	}
@@ -282,7 +296,9 @@ public class CLI extends UI {
 		if (song == null) {
 		    System.out.println("Playback Stopped.");
 		} else {
-		    System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
+		    String elapsedTime = Song.secondsToString(player.getPosition());
+		    System.out.println("Playing: \"" + song.getFileName() + "\" by " + song.getArtist() + 
+				       " [" + elapsedTime + " / " + song.getDurationString() + "]");
 		}
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
@@ -301,7 +317,9 @@ public class CLI extends UI {
 	    try {
 		player.previous();
 		Song song = player.getCurrentSong();
-		System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
+		String elapsedTime = Song.secondsToString(player.getPosition());
+		System.out.println("Playing: \"" + song.getFileName() + "\" by " + song.getArtist() + 
+				   " [" + elapsedTime + " / " + song.getDurationString() + "]");
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();
@@ -341,6 +359,9 @@ public class CLI extends UI {
 	case "play":
 	    command.remove(0);
 	    play(command);
+	    break;
+	case "pause":
+	    pause();
 	    break;
 	case "stop":
 	    stop();

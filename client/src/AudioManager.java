@@ -19,6 +19,7 @@ public class AudioManager {
 	}
 
 	public void playbackFinished(PlaybackEvent e) {
+	    position = e.getFrame();
 	    try {
 		next();
 	    } catch (Throwable t) {
@@ -49,7 +50,8 @@ public class AudioManager {
     private PlaybackListener listener;
     private List<Song> songs;
     private Song currentSong;
-    private boolean playing, shuffle = false, repeat = true;
+    private boolean playing, paused, shuffle = false, repeat = true;
+    private int position = 0;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -68,6 +70,11 @@ public class AudioManager {
      * Starts playing from the first song in the queue.
      */
     public void play() throws Exception {
+	if (isPaused()) {
+	    play(currentSong, position / 1000);
+	    return;
+	}
+
 	if (songs.isEmpty()) {
 	    return; // throw?
 	}
@@ -85,6 +92,8 @@ public class AudioManager {
 	if (!exists(song)) {
 	    throw new BadSongException(song.getTitle());
 	}
+
+	paused = false;
 
 	if (isPlaying()) player.close();
 	
@@ -144,7 +153,11 @@ public class AudioManager {
      * Pauses the currently playing song.
      */
     public void pause() {
-	
+	if (isPlaying()) {
+	    playing = false;
+	    paused = true;
+	    player.stop();
+	}
     }
 
     /**
@@ -154,6 +167,7 @@ public class AudioManager {
 	if (player != null) {
 	    player.close();
 	    playing = false;
+	    paused = false;
 	    currentSong = null;
 	}
     }
@@ -249,7 +263,7 @@ public class AudioManager {
      * @return true if a song is paused, false otherwise
      */
     public boolean isPaused() {
-	return (playing &&  currentSong != null);
+	return paused;
     }
 
     /**
