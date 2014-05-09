@@ -20,6 +20,7 @@ public class AudioManager {
 
 	public void playbackFinished(PlaybackEvent e) {
 	    position = e.getFrame();
+
 	    try {
 		next();
 	    } catch (Throwable t) {
@@ -52,6 +53,7 @@ public class AudioManager {
     private Song currentSong;
     private boolean playing, paused, shuffle = false, repeat = true;
     private int position = 0;
+    private int offset = 0;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -71,7 +73,7 @@ public class AudioManager {
      */
     public void play() throws Exception {
 	if (isPaused()) {
-	    play(currentSong, position / 1000);
+	    play(currentSong, (position / 1000) + offset);
 	    return;
 	}
 
@@ -93,6 +95,7 @@ public class AudioManager {
 	    throw new BadSongException(song.getTitle());
 	}
 
+	this.offset = offset;
 	paused = false;
 
 	if (isPlaying()) player.close();
@@ -245,7 +248,7 @@ public class AudioManager {
      * @return The current playback position in seconds
      */
     public int getPosition() {
-	return 0;
+	return position + offset;
     }
 
     /**
