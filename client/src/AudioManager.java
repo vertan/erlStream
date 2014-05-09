@@ -65,6 +65,8 @@ public class AudioManager {
 	currentSong = song;
 	InputStream audio = communicator.play(song, offset);
 	player = new AdvancedPlayer(audio);
+
+	System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
 	new Thread(new PlayerThread()).start();
     }
 
@@ -184,12 +186,30 @@ public class AudioManager {
     }
 
     /**
+     * Returns the elapsed time of the song currently playing.
+     *
+     * @return The elapsed time of the song currently playing in seconds.
+     */
+    public int getElapsedPlaybackTime() {
+	return 0;
+    }
+
+    /**
      * Returns true if a song is playing.
      *
      * @return true if a song is currently playing, false otherwise
      */
     public boolean isPlaying() {
 	return currentSong != null;
+    }
+
+    /**
+     * Returns true if a song is paused.
+     *
+     * @return true if a song is paused, false otherwise
+     */
+    public boolean isPaused() {
+	return false;
     }
 
     /**
