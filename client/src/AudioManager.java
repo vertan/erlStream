@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import javazoom.jl.player.advanced.AdvancedPlayer;
 import java.io.*;
 import java.net.*;
+import java.util.Random;
 
 /**
  * The AudioManager class handles playback of songs and provides an API for UI development.
@@ -16,11 +17,17 @@ public class AudioManager {
 	public void run() {
 	    try {
 		player.play();
+		next();
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();
 	    }
-	    currentSong = null;
+	}
+    }
+
+    static class BadSongException extends Exception {
+	public BadSongException(String message) {
+	    super(message);
 	}
     }
 
@@ -28,6 +35,7 @@ public class AudioManager {
     private AdvancedPlayer player;
     private List<Song> songs;
     private Song currentSong;
+    private boolean shuffle, repeat;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -38,14 +46,22 @@ public class AudioManager {
      */
     public AudioManager(String address, int inPort, int outPort) throws Exception {
 	communicator = new Communicator(address, inPort, outPort);
+	songs = new ArrayList<Song>();
     }
 
     /**
-     * Plays the given song.
+     * Stops any currently playing songs and plays the given song.
      *
      * @param song The song to play
+     * @param offset The number of seconds to skip ahead
      */
     public void play(Song song, int offset) throws Exception {
+	if (!exists(song)) {
+	    throw new BadSongException(song.getTitle());
+	}
+
+	if (isPlaying()) stop();
+	
 	currentSong = song;
 	InputStream audio = communicator.play(song, offset);
 	player = new AdvancedPlayer(audio);
@@ -53,15 +69,46 @@ public class AudioManager {
     }
 
     /**
-     * Plays the song with the given title.
+     * Stops any currently playing songs and plays the song with the given title.
      *
-     * @param title The title of the song 
+     * @param title The title of the song
+     * @param offset The number of seconds to skip ahead
      */
     public void playSongByTitle(String title, int offset) throws Exception {
-	currentSong = new Song(title, "Unknown Title", "Unknown Artist", "Unknown Album", 60);
-	InputStream audio = communicator.play(currentSong, offset);
-	player = new AdvancedPlayer(audio);
-	new Thread(new PlayerThread()).start();
+	Song song = getSongByTitle(title);
+	if (song == null) {
+	    throw new BadSongException(title);
+	}
+
+	play(song, offset);
+    }
+
+    /**
+     * Returns the song with the given title if it exists in this AudioManager.
+     *
+     * @param title The title of the song
+     * @return The song with the given title if it exists in this AudioManager
+     */
+    public Song getSongByTitle(String title) {
+	for (Song song : songs) {
+	    if (song.getFileName().equals(title)) return song;
+	}
+
+	return null;
+    }
+
+    /**
+     * Returns true if the given song exists in this AudioManager.
+     *
+     * @param The song
+     * @return true if the song exists in this AudioManager, false otherwise.
+     */
+    public boolean exists(Song song) {
+	// return songs.contains(song);
+	for (Song songInList : songs) {
+	    if (song.equals(songInList)) return true;
+	}
+	return false;
     }
 
     /**
@@ -75,21 +122,56 @@ public class AudioManager {
      * Stops the playback.
      */
     public void stop() {
-	player.close();
+	if (player != null) {
+	    player.close();
+	    currentSong = null;
+	}
     }
 
     /**
-     * Plays the next song in the queue
+     * Plays the next song in the queue.
      */
-    public void next() {
-
+    public void next() throws Exception {
+	if (isPlaying()) {
+	    if (shuffleIsOn()) {
+		Song nextSong = songs.get(new Random().nextInt(songs.size()) - 1);
+		stop();
+		play(nextSong, 0);
+	    } else {
+		// TODO: Check repeat
+		int currentSongIndex = songs.indexOf(currentSong);
+		Song nextSong = songs.get((currentSongIndex + 1) % songs.size());
+		stop();
+		play(nextSong, 0);
+	    }
+	}
     }
 
     /**
      * Plays the previous song in the queue.
      */
-    public void previous() {
-	
+    public void previous() throws Exception {
+	// TODO: Implement history
+	if (isPlaying()) {
+	    if (shuffleIsOn()) {
+		Song nextSong = songs.get(new Random().nextInt(songs.size()) - 1);
+		stop();
+		play(nextSong, 0);
+	    } else {
+		// TODO: Check repeat
+		int currentSongIndex = songs.indexOf(currentSong);
+
+		Song nextSong;
+		if (currentSongIndex < 1) {
+		    nextSong = songs.get(songs.size() - 1);
+		} else {
+		    nextSong = songs.get(currentSongIndex - 1);
+		}
+
+		stop();
+		play(nextSong, 0);
+	    }
+	}
     }
 
     /**
@@ -99,6 +181,33 @@ public class AudioManager {
      */
     public Song getCurrentSong() {
 	return currentSong;
+    }
+
+    /**
+     * Returns true if a song is playing.
+     *
+     * @return true if a song is currently playing, false otherwise
+     */
+    public boolean isPlaying() {
+	return currentSong != null;
+    }
+
+    /**
+     * Returns true if shuffle mode is on.
+     *
+     * @return true if shuffle mode is on, false otherwise
+     */
+    public boolean shuffleIsOn() {
+	return shuffle;
+    }
+
+    /**
+     * Returns true if repeat mode is on.
+     *
+     * @return true if repeat mode is on, false otherwise
+     */
+    public boolean repeatIsOn() {
+	return repeat;
     }
 
     /**

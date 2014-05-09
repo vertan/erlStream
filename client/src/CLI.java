@@ -90,7 +90,7 @@ public class CLI extends UI {
 	System.out.println("------------------");
 	if (connected) {
 	    System.out.println("list / ls: List available songs");
-	    System.out.println("play <songname>: Play song");
+	    System.out.println("play <Title>: Play song");
 	    System.out.println("stop: Stop the playback");
 	    System.out.println("status: Get status information");
 	}
@@ -158,12 +158,7 @@ public class CLI extends UI {
     /*
      * Prints a list with the available songs.
      */
-    private void list(List<String> arguments) {
-	if (arguments.size() > 0) {
-	    printUsage("list / ls");
-	    return;
-	}
-	
+    private void list() {
 	List<Song> songs;
 	
 	try {
@@ -185,7 +180,7 @@ public class CLI extends UI {
      */
     private void play(List<String> arguments) {
 	if (arguments.size() < 1 || arguments.size() > 2) {
-	    printUsage("play <songname> / play <songname> <time>");
+	    printUsage("play <Title> / play <Title> <time>");
 	    return;
 	}
 	
@@ -195,14 +190,17 @@ public class CLI extends UI {
 	    try {
 		offset = Integer.parseInt(arguments.get(1));
 	    } catch (NumberFormatException e) {
-		printUsage("play <songname> / play <songname> <time>");
+		printUsage("play <Title> / play <Title> <time>");
 		return;
 	    }
 	}	
 	
 	try {
 	    player.playSongByTitle(arguments.get(0), offset);
-	    System.out.println("Playback Started...");
+	    Song currentSong = player.getCurrentSong();
+	    System.out.println("Playing \"" + currentSong.getFileName() + "\" by " + currentSong.getArtist() + ".");
+	} catch (AudioManager.BadSongException e) {
+	    System.out.println("There is no song titled \"" + arguments.get(0) + "\".");
 	} catch (ConnectException e) {
 	    printError("Failed to connect to server!");
 	} catch (Throwable e) {
@@ -215,12 +213,16 @@ public class CLI extends UI {
      * Stops the currently playing song.
      */
     private void stop() {
-	try {
-	    player.stop();
-	    System.out.println("Playback Stopped.");
-	} catch (Throwable e) {
-	    System.out.println("Error " + e.getMessage());
-	    e.printStackTrace();
+	if (player.isPlaying()) {
+	    try {
+		player.stop();
+		System.out.println("Playback stopped.");
+	    } catch (Throwable e) {
+		System.out.println("Error " + e.getMessage());
+		e.printStackTrace();
+	    }
+	} else {
+	    System.out.println("No song is playing.");
 	}
     }
 
@@ -233,7 +235,43 @@ public class CLI extends UI {
 	if (currentSong == null) {
 	    System.out.println("No song currently playing.");
 	} else {
-	    System.out.println("Playing " + currentSong.getFileName() + ".");
+	    System.out.println("Playing \"" + currentSong.getFileName() + "\" by " + currentSong.getArtist() + ".");
+	}
+    }
+
+    /*
+     * Plays the next song.
+     */
+    private void next() {
+	if (player.isPlaying()) {
+	    try {
+		player.next();
+		Song currentSong = player.getCurrentSong();
+		System.out.println("Playing \"" + currentSong.getFileName() + "\" by " + currentSong.getArtist() + ".");
+	    } catch (Throwable e) {
+		System.out.println("Error " + e.getMessage());
+		e.printStackTrace();
+	    }
+	} else {
+	    System.out.println("No song is playing.");
+	}
+    }
+
+    /*
+     * Plays the next song.
+     */
+    private void previous() {
+	if (player.isPlaying()) {
+	    try {
+		player.previous();
+		Song currentSong = player.getCurrentSong();
+		System.out.println("Playing \"" + currentSong.getFileName() + "\" by " + currentSong.getArtist() + ".");
+	    } catch (Throwable e) {
+		System.out.println("Error " + e.getMessage());
+		e.printStackTrace();
+	    }
+	} else {
+	    System.out.println("No song is playing.");
 	}
     }
 
@@ -246,12 +284,10 @@ public class CLI extends UI {
 	
 	switch(command.get(0).toLowerCase()) {
 	case "list":
-	    command.remove(0);
-	    list(command);
+	    list();
 	    break;
 	case "ls":
-	    command.remove(0);
-	    list(command);
+	    list();
 	    break;
 	case "play":
 	    command.remove(0);
@@ -259,6 +295,12 @@ public class CLI extends UI {
 	    break;
 	case "stop":
 	    stop();
+	    break;
+	case "next":
+	    next();
+	    break;
+	case "previous":
+	    previous();
 	    break;
 	case "status":
 	    status();
@@ -271,6 +313,7 @@ public class CLI extends UI {
 	    connect(command);
 	    break;
 	case "quit":
+	    player.stop();
 	    quitPending = true;
 	    break;
 	case "":
@@ -289,6 +332,7 @@ public class CLI extends UI {
 
 	if (connected) {
 	    printHelp();
+	    list();
 
 	    while(!quitPending) {
 		System.out.print("> ");
