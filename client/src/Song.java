@@ -75,22 +75,32 @@ public class Song {
      * @return The duration of this song in hh:mm:ss format
      */
     public String getDurationString() {
-	int hours = duration / 3600;
-	int minutes = (duration % 3600) / 60;
-	int seconds = duration % 60;
+	return secondsToString(duration);
+    }
+
+    /**
+     * Converts a number of seconds to a String in hh:mm:ss format.
+     *
+     * @param seconds The number of seconds to convert
+     * @return The given number of seconds in hh:mm:ss format
+     */
+    public static String secondsToString(int seconds) {
+	int hours = seconds / 3600;
+	int minutes = (seconds % 3600) / 60;
+	seconds = seconds % 60;
 
 	return twoDigitString(hours) + ":" + twoDigitString(minutes) + ":" + twoDigitString(seconds);
     }
 
-    private String twoDigitString(int number) {
+    private static String twoDigitString(int number) {
 	if (number / 10 == 0) return "0" + number;
 	return String.valueOf(number);
     }
 
     /**
-     * Returns the filename of this song.
+     * Returns the string repesentation of this song.
      *
-     * @return The filename of this song
+     * @return The string representation of this song
      */
     public String toString() {
 	return this.filename;
