@@ -49,7 +49,7 @@ public class AudioManager {
     private PlaybackListener listener;
     private List<Song> songs;
     private Song currentSong;
-    private boolean playing, shuffle, repeat;
+    private boolean playing, shuffle = false, repeat = true;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -166,11 +166,11 @@ public class AudioManager {
 	    Song next;
 
 	    if (shuffleIsOn()) {
-		next = songs.get(new Random().nextInt(songs.size()) - 1);
+		next = songs.get(new Random().nextInt(songs.size()));
 	    } else {
 		int currentSongIndex = songs.indexOf(currentSong);
 
-		if ((currentSongIndex == (songs.size() + 1)) && !repeatIsOn() ) { // If last and repeat off
+		if ((currentSongIndex == (songs.size() - 1)) && !repeatIsOn() ) { // If last and repeat off
 		    stop();
 		    return;
 		}
@@ -250,6 +250,24 @@ public class AudioManager {
      */
     public boolean isPaused() {
 	return (playing &&  currentSong != null);
+    }
+
+    /**
+     * Turns shuffle mode on or off.
+     *
+     * @param shuffle true to turn shuffle mode on, false to turn off
+     */
+    public void setShuffle(boolean shuffle) {
+	this.shuffle = shuffle;
+    }
+    
+    /**
+     * Turns repeat mode on or off.
+     *
+     * @param repeat true to turn repeat mode on, false to turn off
+     */
+    public void setRepeat(boolean repeat) {
+	this.repeat = repeat;
     }
 
     /**

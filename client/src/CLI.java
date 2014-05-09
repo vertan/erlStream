@@ -97,6 +97,8 @@ public class CLI extends UI {
 	    System.out.printf(format, "previous",  "Play the previous song in the queue");
 	    System.out.printf(format, "stop", "Stop the playback");
 	    System.out.printf(format, "status", "Get playback status");
+	    System.out.printf(format, "shuffle", "Toggle shuffle mode");
+	    System.out.printf(format, "repeat", "Toggle repeat mode");
 	}
 	System.out.printf(format, "help", "Show this dialog");
 	System.out.printf(format, "connect", "Change server");
@@ -155,6 +157,12 @@ public class CLI extends UI {
 	    System.out.printf(format + "\n", (i+1) + ".", songs.get(i).getFileName(), songs.get(i).getArtist(),
 			      songs.get(i).getAlbum(), songs.get(i).getDurationString());
 	}
+
+	System.out.println(line);
+	format = "%" + top.length() + "s\n";
+	String shuffle = "[Shuffle " + (player.shuffleIsOn() ? "on" : "off") + "]";
+	String repeat = "[Repeat " + (player.repeatIsOn() ? "on" : "off") + "]";
+	System.out.printf(format, shuffle + " " + repeat);
 
 	System.out.println("");
     }
@@ -270,7 +278,12 @@ public class CLI extends UI {
 	    try {
 		player.next();
 		Song song = player.getCurrentSong();
-		System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
+		
+		if (song == null) {
+		    System.out.println("Playback Stopped.");
+		} else {
+		    System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
+		}
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();
@@ -299,6 +312,22 @@ public class CLI extends UI {
     }
 
     /*
+     * Toggles shuffle mode.
+     */
+    private void shuffle() {
+	player.setShuffle(!player.shuffleIsOn());
+	System.out.println("Shuffle mode " + (player.shuffleIsOn() ? "on" : "off") + ".");
+    }
+
+    /*
+     * Toggles repeat mode.
+     */
+    private void repeat() {
+	player.setRepeat(!player.repeatIsOn());
+	System.out.println("Repeat mode " + (player.repeatIsOn() ? "on" : "off") + ".");
+    }
+
+    /*
      * Parses the users input and takes appropriate action.
      */
     private void parseInput(String input) {
@@ -324,6 +353,12 @@ public class CLI extends UI {
 	    break;
 	case "status":
 	    status();
+	    break;
+	case "shuffle":
+	    shuffle();
+	    break;
+	case "repeat":
+	    repeat();
 	    break;
 	case "help":
 	    printHelp();
