@@ -183,8 +183,21 @@ public class CLI extends UI {
      * Plays a song.
      */
     private void play(List<String> arguments) {
-	if (arguments.size() < 1 || arguments.size() > 2) {
-	    printUsage("play <Title> / play <Title> <time>");
+	if (arguments.isEmpty()) {
+	    try {
+		player.play();
+		Song song = player.getCurrentSong();
+		System.out.println("Now playing \"" + song.getFileName() + "\" by " + song.getArtist() + ".");
+		return;
+	    } catch (Throwable e) {
+		System.out.println("Error " + e.getMessage());
+		e.printStackTrace();
+	    }
+
+	}
+
+	if (arguments.size() > 2) {
+	    printUsage("play / play <Title> / play <Title> <time>");
 	    return;
 	}
 	
@@ -194,7 +207,7 @@ public class CLI extends UI {
 	    try {
 		offset = Integer.parseInt(arguments.get(1));
 	    } catch (NumberFormatException e) {
-		printUsage("play <Title> / play <Title> <time>");
+		printUsage("play / play <Title> / play <Title> <time>");
 		return;
 	    }
 	}	

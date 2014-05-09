@@ -65,6 +65,17 @@ public class AudioManager {
     }
 
     /**
+     * Starts playing from the first song in the queue.
+     */
+    public void play() throws Exception {
+	if (songs.isEmpty()) {
+	    return; // throw?
+	}
+	
+	play(songs.get(0), 0);
+    }
+
+    /**
      * Stops any currently playing songs and plays the given song.
      *
      * @param song The song to play
