@@ -197,7 +197,7 @@ public class CLI extends UI {
 		player.play();
 		Song song = player.getCurrentSong();
 		String elapsedTime = Song.secondsToString(player.getPosition());
-		System.out.println("Playing: \"" + song.getFileName() + "\" by " + song.getArtist() + 
+		System.out.println("[Playing] \"" + song.getFileName() + "\" by " + song.getArtist() + 
 				   " [" + elapsedTime + " / " + song.getDurationString() + "]");
 		return;
 	    } catch (Throwable e) {
@@ -226,7 +226,7 @@ public class CLI extends UI {
 	    player.playSongByTitle(arguments.get(0), offset);
 	    Song song = player.getCurrentSong();
 	    String elapsedTime = Song.secondsToString(player.getPosition());
-	    System.out.println("Playing: \"" + song.getFileName() + "\" by " + song.getArtist() + 
+	    System.out.println("[Playing] \"" + song.getFileName() + "\" by " + song.getArtist() + 
 			       " [" + elapsedTime + " / " + song.getDurationString() + "]");
 	} catch (AudioManager.BadSongException e) {
 	    System.out.println("There is no song titled \"" + arguments.get(0) + "\".");
@@ -242,11 +242,12 @@ public class CLI extends UI {
      * Pauses the current song.
      */
     private void pause() {
-	if (player.isPlaying()) {
+	if (player.isPlaying() || player.isPaused()) {
 	    player.pause();
-	    System.out.println("Playback paused.");
-	} else if (player.isPaused()) {
-	    System.out.println("Already paused.");
+	    Song song = player.getCurrentSong();
+	    String elapsedTime = Song.secondsToString(player.getPosition());
+	    System.out.println("[Paused] \"" + song.getFileName() + "\" by " + song.getArtist() + 
+			       " [" + elapsedTime + " / " + song.getDurationString() + "]");
 	} else {
 	    System.out.println("No song is playing.");
 	}
@@ -277,7 +278,7 @@ public class CLI extends UI {
 	    Song song = player.getCurrentSong();
 	    String state = player.isPlaying() ? "Playing" : "Paused";
 	    String elapsedTime = Song.secondsToString(player.getPosition());
-	    System.out.println(state + ": \"" + song.getFileName() + "\" by " + song.getArtist() + 
+	    System.out.println("[" + state + "] \"" + song.getFileName() + "\" by " + song.getArtist() + 
 			       " [" + elapsedTime + " / " + song.getDurationString() + "]");
 	} else {
 	    System.out.println("Stopped.");
@@ -297,7 +298,7 @@ public class CLI extends UI {
 		    System.out.println("Playback Stopped.");
 		} else {
 		    String elapsedTime = Song.secondsToString(player.getPosition());
-		    System.out.println("Playing: \"" + song.getFileName() + "\" by " + song.getArtist() + 
+		    System.out.println("[Playing] \"" + song.getFileName() + "\" by " + song.getArtist() + 
 				       " [" + elapsedTime + " / " + song.getDurationString() + "]");
 		}
 	    } catch (Throwable e) {
@@ -318,7 +319,7 @@ public class CLI extends UI {
 		player.previous();
 		Song song = player.getCurrentSong();
 		String elapsedTime = Song.secondsToString(player.getPosition());
-		System.out.println("Playing: \"" + song.getFileName() + "\" by " + song.getArtist() + 
+		System.out.println("[Playing] \"" + song.getFileName() + "\" by " + song.getArtist() + 
 				   " [" + elapsedTime + " / " + song.getDurationString() + "]");
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());

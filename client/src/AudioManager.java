@@ -15,11 +15,13 @@ import java.util.Random;
 public class AudioManager {
     private class TransitionHandler extends PlaybackListener {
 	public void playbackStarted(PlaybackEvent e) {
+	    startTime = System.currentTimeMillis();
 	    playing = true;
 	}
 
 	public void playbackFinished(PlaybackEvent e) {
-	    position = e.getFrame();
+	    pausePosition = e.getFrame();
+	    pauseTime = System.currentTimeMillis();
 
 	    try {
 		next();
@@ -52,8 +54,8 @@ public class AudioManager {
     private List<Song> songs;
     private Song currentSong;
     private boolean playing, paused, shuffle = false, repeat = true;
-    private int position = 0;
-    private int offset = 0;
+    private long startTime, pauseTime;
+    private int pausePosition, offset;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -73,7 +75,7 @@ public class AudioManager {
      */
     public void play() throws Exception {
 	if (isPaused()) {
-	    play(currentSong, (position / 1000) + offset);
+	    play(currentSong, (pausePosition / 1000) + offset);
 	    return;
 	}
 
@@ -106,6 +108,8 @@ public class AudioManager {
 	player = new AdvancedPlayer(audio);
 	player.setPlayBackListener(listener);
 
+	startTime = System.currentTimeMillis(); // Preliminary guess
+	playing = true; // Probably risky, but needed for getPosition()
 	new Thread(new PlayerThread()).start();
     }
 
@@ -213,7 +217,7 @@ public class AudioManager {
 	    Song next;
 	
 	    if (shuffleIsOn()) {
-		next = songs.get(new Random().nextInt(songs.size()) - 1);
+		next = songs.get(new Random().nextInt(songs.size()));
 	    } else {
 		int currentSongIndex = songs.indexOf(currentSong);
 
@@ -248,7 +252,16 @@ public class AudioManager {
      * @return The current playback position in seconds
      */
     public int getPosition() {
-	return position + offset;
+	if (isPlaying()) {
+	    long now = System.currentTimeMillis();
+	    long diff = now - startTime;
+	    return (int) (diff / 1000) + offset;
+	} else if (isPaused()) {
+	    long diff = pauseTime - startTime;
+	    return (int) (diff / 1000) + offset;
+	} else {
+	    return 0;
+	}
     }
 
     /**
