@@ -95,7 +95,7 @@ public class AudioManager {
     public AudioManager(String address, int inPort, int outPort) throws Exception {
 	communicator = new Communicator(address, inPort, outPort);
 	listener = new TransitionHandler();
-	songs = new ArrayList<Song>();
+	songs = getSongs();
     }
 
     /**

@@ -23,6 +23,115 @@ public class CLI extends UI {
 	sc = new Scanner(System.in);
     }
 
+    /**
+     * Starts the CLI.
+     */
+    public void start() {
+	setupConnection();
+	printHelp();
+	
+	while(!quitPending) {
+	    System.out.print("> ");
+	    parseInput(sc.nextLine());
+	}
+
+	sc.close();	
+	System.out.println("Client exited.");
+    }
+
+    /*
+     * Prints a string prepended with "Error: ".
+     */
+    private void printError(String message) {
+	System.out.println("Error: " + message);
+    }
+
+    /*
+     * Prints a string prepended with "Usage: ".
+     */
+    private void printUsage(String instruction) {
+	System.out.println("Usage: " + instruction);
+    }
+
+    /*
+     * Parses the users input and takes appropriate action.
+     */
+    private void parseInput(String input) {
+	List<String> command = stringToCommand(input);
+	if (command.size() == 0) return;
+
+	switch(command.get(0).toLowerCase()) {
+      	case "help":
+	    printHelp();
+	    return;
+	case "connect":
+	    command.remove(0);
+	    connect(command);
+	    return;
+	case "quit":
+	    player.stop();
+	    quitPending = true;
+	    return;
+	case "":
+	    return;
+	}
+
+	if (connected) {
+	    switch(command.get(0).toLowerCase()) {
+	    case "ls":
+		list();
+		return;
+	    case "play":
+		command.remove(0);
+		play(command);
+		return;
+	    case "pause":
+		pause();
+		return;
+	    case "stop":
+		stop();
+		return;
+	    case "next":
+		next();
+		return;
+	    case "previous":
+		previous();
+		return;
+	    case "status":
+		status();
+		return;
+	    case "shuffle":
+		shuffle();
+		return;
+	    case "repeat":
+		repeat();
+		return;
+	    case "sort":
+		command.remove(0);
+		sort(command);
+		return;
+	    }
+	}
+	
+	System.out.println("Unknown command '" + command.get(0).toLowerCase() + 
+			   "'. Type 'help' to see available options.");
+    }
+
+    /*
+     * Returns a list with the words in a string.
+     */
+    private List<String> stringToCommand(String input) {
+	String[] splitInput = input.trim().split("\\s+");
+
+	List<String> command = new ArrayList<String>();
+
+	for (String s : splitInput) {
+	    command.add(s);
+	}
+
+	return command;
+    }
+
     /*
      * Prompts for server address and returns true if a connection is established.
      */
@@ -55,30 +164,16 @@ public class CLI extends UI {
 	System.out.print("Connecting... ");
 
 	try {
-	    player = new AudioManager(address, 1341, 1340);
+	    AudioManager test = new AudioManager(address, 1341, 1340);
+	    if (player != null) player.stop();
+	    player = test;
+	    connected = true;
+	    System.out.println("connected!");
 	} catch (Throwable e) {
-	    System.out.println("fail!");
-	    connected = false;
+	    System.out.println("failed!");
 	}
 
-	System.out.println("connected!");
-	connected = true;
-
 	return connected;
-    }
-
-    /*
-     * Prints a string prepended with "Error: ".
-     */
-    private void printError(String message) {
-	System.out.println("Error: " + message);
-    }
-
-    /*
-     * Prints a string prepended with "Usage: ".
-     */
-    private void printUsage(String instruction) {
-	System.out.println("Usage: " + instruction);
     }
 
     /*
@@ -106,21 +201,6 @@ public class CLI extends UI {
 	System.out.printf(format, "connect", "Change server");
 	System.out.printf(format, "quit", "Exit the client");
 	System.out.println("");
-    }
-
-    /*
-     * Returns a list with the words in a string.
-     */
-    private List<String> stringToCommand(String input) {
-	String[] splitInput = input.trim().split("\\s+");
-
-	List<String> command = new ArrayList<String>();
-
-	for (String s : splitInput) {
-	    command.add(s);
-	}
-
-	return command;
     }
 
     /*
@@ -232,6 +312,7 @@ public class CLI extends UI {
 	} catch (AudioManager.BadSongException e) {
 	    System.out.println("There is no song titled \"" + arguments.get(0) + "\".");
 	} catch (ConnectException e) {
+	    // TODO: Handle this better
 	    printError("Failed to connect to server!");
 	} catch (Throwable e) {
 	    System.out.println("Error " + e.getMessage());
@@ -259,13 +340,8 @@ public class CLI extends UI {
      */
     private void stop() {
 	if (player.isPlaying() || player.isPaused()) {
-	    try {
-		player.stop();
-		System.out.println("Playback stopped.");
-	    } catch (Throwable e) {
-		System.out.println("Error " + e.getMessage());
-		e.printStackTrace();
-	    }
+	    player.stop();
+	    System.out.println("Playback stopped.");
 	} else {
 	    System.out.println("No song is playing.");
 	}
@@ -425,85 +501,5 @@ public class CLI extends UI {
 	}
 
 	list();
-    }
-
-    /*
-     * Parses the users input and takes appropriate action.
-     */
-    private void parseInput(String input) {
-	List<String> command = stringToCommand(input);
-	if (command.size() == 0) return;
-	
-	switch(command.get(0).toLowerCase()) {
-	case "ls":
-	    list();
-	    break;
-	case "play":
-	    command.remove(0);
-	    play(command);
-	    break;
-	case "pause":
-	    pause();
-	    break;
-	case "stop":
-	    stop();
-	    break;
-	case "next":
-	    next();
-	    break;
-	case "previous":
-	    previous();
-	    break;
-	case "status":
-	    status();
-	    break;
-	case "shuffle":
-	    shuffle();
-	    break;
-	case "repeat":
-	    repeat();
-	    break;
-	case "sort":
-	    command.remove(0);
-	    sort(command);
-	    break;
-	case "help":
-	    printHelp();
-	    break;
-	case "connect":
-	    command.remove(0);
-	    connect(command);
-	    break;
-	case "quit":
-	    player.stop();
-	    quitPending = true;
-	    break;
-	case "":
-	    break;
-	default:
-	    System.out.println("Unknown command '" + command.get(0).toLowerCase() + 
-			       "'. Type 'help' to see available options.");
-	}	
-    }
-
-    /**
-     * Starts the CLI.
-     */
-    public void start() {
-	setupConnection();
-
-	if (connected) {
-	    printHelp();
-	    list();
-
-	    while(!quitPending) {
-		System.out.print("> ");
-		parseInput(sc.nextLine());
-	    }
-	}
-
-	sc.close();
-	
-	System.out.println("Client exited.");
     }
 }
