@@ -103,7 +103,7 @@ public class AudioManager {
      */
     public void play() throws Exception {
 	if (isPaused()) {
-	    play(currentSong, (pausePosition / 1000) + offset);
+	    play(currentSong, pausePosition + offset);
 	    return;
 	}
 
@@ -118,7 +118,7 @@ public class AudioManager {
      * Stops any currently playing songs and plays the given song.
      *
      * @param song The song to play
-     * @param offset The number of seconds to skip ahead
+     * @param offset The number of milliseconds to skip ahead
      */
     public void play(Song song, int offset) throws Exception {
 	if (!exists(song)) {
@@ -145,7 +145,7 @@ public class AudioManager {
      * Stops any currently playing songs and plays the song with the given title.
      *
      * @param title The title of the song
-     * @param offset The number of seconds to skip ahead
+     * @param offset The number of milliseconds to skip ahead
      */
     public void playSongByTitle(String title, int offset) throws Exception {
 	Song song = getSongByTitle(title);
@@ -283,10 +283,10 @@ public class AudioManager {
 	if (isPlaying()) {
 	    long now = System.currentTimeMillis();
 	    long diff = now - startTime;
-	    return (int) (diff / 1000) + offset;
+	    return (int) ((diff + offset) / 1000);
 	} else if (isPaused()) {
 	    long diff = pauseTime - startTime;
-	    return (int) (diff / 1000) + offset;
+	    return (int) ((diff + offset) / 1000);
 	} else {
 	    return 0;
 	}

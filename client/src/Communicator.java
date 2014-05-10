@@ -90,7 +90,7 @@ public class Communicator {
      * Plays the given song if it exists on the server.
      *
      * @param song The song to play 
-     * @param offset The number of seconds to skip ahead
+     * @param offset The number of milliseconds to skip ahead
      * @return true if the file exists on the server and the playback succeeded, false otherwise
      * @see Song
      */

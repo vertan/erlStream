@@ -73,9 +73,10 @@ play([]) ->
 play([File|OffsetTime]) ->
     FilePath = lists:append("../files/", File),
     Bitrate = 24000,
+    BitrateMS = Bitrate / 1000,
     [StartTime|_] = OffsetTime,
-    {StartSecond, StartRest} = string:to_integer(StartTime),
-    StartOffset = StartSecond * Bitrate,
+    {StartMS, StartRest} = string:to_integer(StartTime),
+    StartOffset = round(StartMS * BitrateMS),
     case file:read_file(FilePath) of
 	{ok, Binary} ->
 	    <<OffsetChunk:StartOffset/binary, RestChunk/bitstring>> = Binary,

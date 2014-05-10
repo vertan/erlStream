@@ -296,7 +296,7 @@ public class CLI extends UI {
 	
 	if(arguments.size() > 1) {
 	    try {
-		offset = Integer.parseInt(arguments.get(1));
+		offset = Integer.parseInt(arguments.get(1)) * 1000;
 	    } catch (NumberFormatException e) {
 		printUsage("play / play <Title> / play <Title> <time>");
 		return;
