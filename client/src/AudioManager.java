@@ -4,6 +4,8 @@ import javazoom.jl.player.advanced.*;
 import java.io.*;
 import java.net.*;
 import java.util.Random;
+import java.util.Comparator;
+import java.util.Collections;
 
 /**
  * The AudioManager class handles playback of songs and provides an API for UI development.
@@ -48,6 +50,32 @@ public class AudioManager {
 	}
     }
 
+    private class TitleComparator implements Comparator<Song> {
+	public int compare(Song a, Song b) {
+	    return a.getFileName().toLowerCase().compareTo(b.getFileName().toLowerCase());
+	}
+    }
+
+    private class ArtistComparator implements Comparator<Song> {
+	public int compare(Song a, Song b) {
+	    return a.getArtist().toLowerCase().compareTo(b.getArtist().toLowerCase());
+	}
+    }
+
+    private class AlbumComparator implements Comparator<Song> {
+	public int compare(Song a, Song b) {
+	    return a.getAlbum().toLowerCase().compareTo(b.getAlbum().toLowerCase());
+	}
+    }
+
+    private class DurationComparator implements Comparator<Song> {
+	public int compare(Song a, Song b) {
+	    Integer aDur = Integer.valueOf(a.getDuration());
+	    Integer bDur = Integer.valueOf(b.getDuration());
+	    return aDur.compareTo(bDur);
+	}
+    }
+
     private Communicator communicator;
     private AdvancedPlayer player;
     private PlaybackListener listener;
@@ -55,7 +83,7 @@ public class AudioManager {
     private Song currentSong;
     private boolean playing, paused, shuffle = false, repeat = true;
     private long startTime, pauseTime;
-    private int pausePosition, offset;
+    private int pausePosition, offset, sortmode;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -335,15 +363,56 @@ public class AudioManager {
     public List<Song> getSongs() throws Exception {
 	songs = communicator.list();
 
+	if (sortmode != 0) {
+	    sort(sortmode);
+	}
+
 	return songs;
     }
 
     /**
-     * Sorts the songs by title.
+     * Sorts the songs by title, artist, album or duration.
      * 
+     * @param sortmode 0/1 for title ascending/descending, 2/3 for artist ascending/descending, 4/5 for album ascending/descending and 6/7 for duration ascending/descending
      * @return The available songs, sorted by title
      */
-    public List<Song> sortByTitle() throws Exception {
-	return getSongs();
+    public List<Song> sort(int sortmode) {
+	this.sortmode = sortmode;
+
+	switch(sortmode) {
+	case 0:
+	    Collections.sort(songs, new TitleComparator());
+	    break;
+	case 1:
+	    Collections.sort(songs, new TitleComparator());
+	    Collections.reverse(songs);
+	    break;
+	case 2:
+	    Collections.sort(songs, new ArtistComparator());
+	    break;
+	case 3:
+	    Collections.sort(songs, new ArtistComparator());
+	    Collections.reverse(songs);
+	    break;
+	case 4:
+	    Collections.sort(songs, new AlbumComparator());
+	    break;
+	case 5:
+	    Collections.sort(songs, new AlbumComparator());
+	    Collections.reverse(songs);
+	    break;
+	case 6:
+	    Collections.sort(songs, new DurationComparator());
+	    break;
+	case 7:
+	    Collections.sort(songs, new DurationComparator());
+	    Collections.reverse(songs);
+	    break;
+	default:
+	    // throw new IllegalArgumentException(String.valueOf(sortmode));
+	    break;
+	}
+
+	return songs;
     }
 }

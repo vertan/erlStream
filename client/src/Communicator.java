@@ -80,7 +80,7 @@ public class Communicator {
 	String filename;
 
 	while((filename = fromServer.readLine()) != null) {
-	    songs.add(new Song(getBaseName(filename), "Unknown Title", "Unknown Album", "Unknown Artist", 60));
+	    songs.add(new Song(getBaseName(filename), "Unknown Title", "Unknown Album", "Unknown Artist", filename.length() * 16));
 	}
 
 	return songs;

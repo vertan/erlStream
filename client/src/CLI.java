@@ -98,6 +98,7 @@ public class CLI extends UI {
 	    System.out.printf(format, "previous",  "Play the previous song in the queue");
 	    System.out.printf(format, "stop", "Stop the playback");
 	    System.out.printf(format, "status", "Get playback status");
+	    System.out.printf(format, "sort", "Sort the list");
 	    System.out.printf(format, "shuffle", "Toggle shuffle mode");
 	    System.out.printf(format, "repeat", "Toggle repeat mode");
 	}
@@ -347,6 +348,86 @@ public class CLI extends UI {
     }
 
     /*
+     * Sorts the songs and prints the list.
+     */
+    private void sort(List<String> arguments) {
+	String usage = "sort <title/artist/album/duration> <asc/desc>";
+
+	if (arguments.size() != 2) {
+	    printUsage(usage);
+	    return;
+	}
+
+	switch(arguments.get(0).toLowerCase()) {
+	case "title":
+	    switch(arguments.get(1).toLowerCase()) {
+	    case "asc":
+		player.sort(0);
+		System.out.println("Sorting titles in ascending order...");
+		break;
+	    case "desc":
+		player.sort(1);
+		System.out.println("Sorting titles in descending order...");
+		break;
+	    default:
+		printUsage(usage);
+		return;
+	    }
+	    break;
+	case "artist":
+	    switch(arguments.get(1).toLowerCase()) {
+	    case "asc":
+		player.sort(2);
+		System.out.println("Sorting artists in ascending order...");
+		break;
+	    case "desc":
+		player.sort(3);
+		System.out.println("Sorting artists in descending order...");
+		break;
+	    default:
+		printUsage(usage);
+		return;
+	    }
+	    break;
+	case "album":
+	    switch(arguments.get(1).toLowerCase()) {
+	    case "asc":
+		player.sort(4);
+		System.out.println("Sorting albums in ascending order...");
+		break;
+	    case "desc":
+		player.sort(5);
+		System.out.println("Sorting albums in descending order...");
+		break;
+	    default:
+		printUsage(usage);
+		return;
+	    }
+	    break;
+	case "duration":
+	    switch(arguments.get(1).toLowerCase()) {
+	    case "asc":
+		player.sort(6);
+		System.out.println("Sorting durations in ascending order...");
+		break;
+	    case "desc":
+		player.sort(7);
+		System.out.println("Sorting durations in descending order...");
+		break;
+	    default:
+		printUsage(usage);
+		return;
+	    }
+	    break;
+	default:
+	    printUsage(usage);
+	    return;
+	}
+
+	list();
+    }
+
+    /*
      * Parses the users input and takes appropriate action.
      */
     private void parseInput(String input) {
@@ -381,6 +462,10 @@ public class CLI extends UI {
 	    break;
 	case "repeat":
 	    repeat();
+	    break;
+	case "sort":
+	    command.remove(0);
+	    sort(command);
 	    break;
 	case "help":
 	    printHelp();
