@@ -28,7 +28,7 @@ public class CLI extends UI {
      */
     public void start() {
 	setupConnection();
-	printHelp();
+	help();
 	
 	while(!quitPending) {
 	    System.out.print("> ");
@@ -54,67 +54,68 @@ public class CLI extends UI {
     }
 
     /*
+     * Prints a notification that the user is not connected to a server.
+     */
+    private void printConnectionMessage() {
+	System.out.println("Not connected to a server.");
+    }
+
+    /*
      * Parses the users input and takes appropriate action.
      */
     private void parseInput(String input) {
 	List<String> command = stringToCommand(input);
 	if (command.size() == 0) return;
-
+	
 	switch(command.get(0).toLowerCase()) {
       	case "help":
-	    printHelp();
-	    return;
+	    help();
+	    break;
 	case "connect":
 	    command.remove(0);
 	    connect(command);
-	    return;
+	    break;
 	case "quit":
-	    player.stop();
-	    quitPending = true;
-	    return;
+	    quit();
+	    break;
 	case "":
-	    return;
+	    break;
+	case "ls":
+	    list();
+	    break;
+	case "play":
+	    command.remove(0);
+	    play(command);
+	    break;
+	case "pause":
+	    pause();
+	    break;
+	case "stop":
+	    stop();
+	    break;
+	case "next":
+	    next();
+	    break;
+	case "previous":
+	    previous();
+	    break;
+	case "status":
+	    status();
+	    break;
+	case "shuffle":
+	    shuffle();
+	    break;
+	case "repeat":
+	    repeat();
+	    break;
+	case "sort":
+	    command.remove(0);
+	    sort(command);
+	    break;
+	default:
+	    System.out.println("Unknown command '" + command.get(0).toLowerCase() + 
+			       "'. Type 'help' to see available options.");
 	}
-
-	if (connected) {
-	    switch(command.get(0).toLowerCase()) {
-	    case "ls":
-		list();
-		return;
-	    case "play":
-		command.remove(0);
-		play(command);
-		return;
-	    case "pause":
-		pause();
-		return;
-	    case "stop":
-		stop();
-		return;
-	    case "next":
-		next();
-		return;
-	    case "previous":
-		previous();
-		return;
-	    case "status":
-		status();
-		return;
-	    case "shuffle":
-		shuffle();
-		return;
-	    case "repeat":
-		repeat();
-		return;
-	    case "sort":
-		command.remove(0);
-		sort(command);
-		return;
-	    }
-	}
-	
-	System.out.println("Unknown command '" + command.get(0).toLowerCase() + 
-			   "'. Type 'help' to see available options.");
     }
 
     /*
@@ -179,7 +180,7 @@ public class CLI extends UI {
     /*
      * Prints the available commands.
      */
-    private void printHelp() {
+    private void help() {
 	String format = "%-14s %s\n";
 
 	System.out.println("");
@@ -201,6 +202,14 @@ public class CLI extends UI {
 	System.out.printf(format, "connect", "Change server");
 	System.out.printf(format, "quit", "Exit the client");
 	System.out.println("");
+    }
+
+    /*
+     * Stops the playback and turns the quitPending flag on.
+     */
+    private void quit() {
+	if (player != null) player.stop();
+	quitPending = true;	
     }
 
     /*
@@ -253,6 +262,11 @@ public class CLI extends UI {
      * Prints a list with the available songs.
      */
     private void list() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+
 	List<Song> songs;
 	
 	try {
@@ -273,6 +287,11 @@ public class CLI extends UI {
      * Plays a song.
      */
     private void play(List<String> arguments) {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	if (arguments.isEmpty()) {
 	    try {
 		player.play();
@@ -324,6 +343,11 @@ public class CLI extends UI {
      * Pauses the current song.
      */
     private void pause() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	if (player.isPlaying() || player.isPaused()) {
 	    player.pause();
 	    Song song = player.getCurrentSong();
@@ -339,6 +363,11 @@ public class CLI extends UI {
      * Stops the current song.
      */
     private void stop() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	if (player.isPlaying() || player.isPaused()) {
 	    player.stop();
 	    System.out.println("Playback stopped.");
@@ -351,6 +380,11 @@ public class CLI extends UI {
      * Prints status information.
      */
     private void status() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	if (player.isPlaying() || player.isPaused()) {
 	    Song song = player.getCurrentSong();
 	    String state = player.isPlaying() ? "Playing" : "Paused";
@@ -366,6 +400,11 @@ public class CLI extends UI {
      * Plays the next song.
      */
     private void next() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	if (player.isPlaying()) {
 	    try {
 		player.next();
@@ -391,6 +430,11 @@ public class CLI extends UI {
      * Plays the next song.
      */
     private void previous() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	if (player.isPlaying()) {
 	    try {
 		player.previous();
@@ -411,6 +455,11 @@ public class CLI extends UI {
      * Toggles shuffle mode.
      */
     private void shuffle() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	player.setShuffle(!player.shuffleIsOn());
 	System.out.println("Shuffle mode " + (player.shuffleIsOn() ? "on" : "off") + ".");
     }
@@ -419,6 +468,11 @@ public class CLI extends UI {
      * Toggles repeat mode.
      */
     private void repeat() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	player.setRepeat(!player.repeatIsOn());
 	System.out.println("Repeat mode " + (player.repeatIsOn() ? "on" : "off") + ".");
     }
@@ -427,6 +481,11 @@ public class CLI extends UI {
      * Sorts the songs and prints the list.
      */
     private void sort(List<String> arguments) {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
 	String usage = "sort <title/artist/album/duration> <asc/desc>";
 
 	if (arguments.size() != 2) {
