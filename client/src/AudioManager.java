@@ -25,10 +25,12 @@ public class AudioManager {
 	    pausePosition = e.getFrame();
 	    pauseTime = System.currentTimeMillis();
 
-	    try {
-		next();
-	    } catch (Throwable t) {
-		t.printStackTrace();
+	    if (isPlaying()) { // If the song ended
+		try {
+		    next();
+		} catch (Throwable t) {
+		    t.printStackTrace();
+		}
 	    }
 	}
     }
@@ -211,7 +213,7 @@ public class AudioManager {
      * Plays the next song in the queue.
      */
     public void next() throws Exception {
-	if (isPlaying()) {
+	if (isPlaying() || isPaused()) {
 	    Song next;
 
 	    if (shuffleIsOn()) {
@@ -240,7 +242,7 @@ public class AudioManager {
      * Plays the previous song in the queue.
      */
     public void previous() throws Exception {
-	if (isPlaying()) {
+	if (isPlaying() || isPaused()) {
 	    // TODO: Implement history?
 	    Song next;
 	

@@ -295,10 +295,7 @@ public class CLI extends UI {
 	if (arguments.isEmpty()) {
 	    try {
 		player.play();
-		Song song = player.getCurrentSong();
-		String elapsedTime = Song.secondsToString(player.getPosition());
-		System.out.println("[Playing] \"" + song.getFileName() + "\" by " + song.getArtist() + 
-				   " [" + elapsedTime + " / " + song.getDurationString() + "]");
+		status();
 		return;
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
@@ -324,10 +321,7 @@ public class CLI extends UI {
 	
 	try {
 	    player.playSongByTitle(arguments.get(0), offset);
-	    Song song = player.getCurrentSong();
-	    String elapsedTime = Song.secondsToString(player.getPosition());
-	    System.out.println("[Playing] \"" + song.getFileName() + "\" by " + song.getArtist() + 
-			       " [" + elapsedTime + " / " + song.getDurationString() + "]");
+	    status();
 	} catch (AudioManager.BadSongException e) {
 	    System.out.println("There is no song titled \"" + arguments.get(0) + "\".");
 	} catch (ConnectException e) {
@@ -350,10 +344,7 @@ public class CLI extends UI {
 	
 	if (player.isPlaying() || player.isPaused()) {
 	    player.pause();
-	    Song song = player.getCurrentSong();
-	    String elapsedTime = Song.secondsToString(player.getPosition());
-	    System.out.println("[Paused] \"" + song.getFileName() + "\" by " + song.getArtist() + 
-			       " [" + elapsedTime + " / " + song.getDurationString() + "]");
+	    status();
 	} else {
 	    System.out.println("No song is playing.");
 	}
@@ -384,13 +375,26 @@ public class CLI extends UI {
 	    printConnectionMessage();
 	    return;
 	}
-	
+
 	if (player.isPlaying() || player.isPaused()) {
 	    Song song = player.getCurrentSong();
 	    String state = player.isPlaying() ? "Playing" : "Paused";
-	    String elapsedTime = Song.secondsToString(player.getPosition());
-	    System.out.println("[" + state + "] \"" + song.getFileName() + "\" by " + song.getArtist() + 
-			       " [" + elapsedTime + " / " + song.getDurationString() + "]");
+	    System.out.println("[" + state + "] \"" + song.getFileName() + "\" by " + song.getArtist());
+
+	    // Position bar
+	    int barLength = 40;
+	    int passedTime = player.getPosition();
+	    double passedPerc = (double) passedTime / song.getDuration();
+	    int passedLength = (int) (barLength * passedPerc);
+
+	    System.out.print("[" + Song.secondsToString(passedTime) + "] ");
+	    for (int i = 0; i < passedLength; i++) {
+		System.out.print("|");
+	    }
+	    for (int i = 0; i < (barLength - passedLength); i++) {		
+		System.out.print("-");
+	    }
+	    System.out.println(" [" + song.getDurationString() + "]");
 	} else {
 	    System.out.println("Stopped.");
 	}
@@ -405,7 +409,7 @@ public class CLI extends UI {
 	    return;
 	}
 	
-	if (player.isPlaying()) {
+	if (player.isPlaying() || player.isPaused()) {
 	    try {
 		player.next();
 		Song song = player.getCurrentSong();
@@ -413,9 +417,7 @@ public class CLI extends UI {
 		if (song == null) {
 		    System.out.println("Playback Stopped.");
 		} else {
-		    String elapsedTime = Song.secondsToString(player.getPosition());
-		    System.out.println("[Playing] \"" + song.getFileName() + "\" by " + song.getArtist() + 
-				       " [" + elapsedTime + " / " + song.getDurationString() + "]");
+		    status();
 		}
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
@@ -435,13 +437,10 @@ public class CLI extends UI {
 	    return;
 	}
 	
-	if (player.isPlaying()) {
+	if (player.isPlaying() || player.isPaused()) {
 	    try {
 		player.previous();
-		Song song = player.getCurrentSong();
-		String elapsedTime = Song.secondsToString(player.getPosition());
-		System.out.println("[Playing] \"" + song.getFileName() + "\" by " + song.getArtist() + 
-				   " [" + elapsedTime + " / " + song.getDurationString() + "]");
+		status();
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();
