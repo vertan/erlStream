@@ -71,6 +71,9 @@ public class CLI extends UI {
       	case "help":
 	    help();
 	    break;
+	case "serverinfo":
+	    serverinfo();
+	    break;
 	case "connect":
 	    command.remove(0);
 	    connect(command);
@@ -193,15 +196,32 @@ public class CLI extends UI {
 	    System.out.printf(format, "next", "Play the next song in the queue");
 	    System.out.printf(format, "previous",  "Play the previous song in the queue");
 	    System.out.printf(format, "stop", "Stop the playback");
-	    System.out.printf(format, "status", "Get playback status");
+	    System.out.printf(format, "status", "Show playback status");
 	    System.out.printf(format, "sort", "Sort the list");
 	    System.out.printf(format, "shuffle", "Toggle shuffle mode");
 	    System.out.printf(format, "repeat", "Toggle repeat mode");
+	    System.out.printf(format, "serverinfo", "Show server info");
 	}
 	System.out.printf(format, "help", "Show this dialog");
 	System.out.printf(format, "connect", "Change server");
 	System.out.printf(format, "quit", "Exit the client");
 	System.out.println("");
+    }
+
+    /*
+     * Prints server information.
+     */
+    private void serverinfo() {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+
+	if (player != null) {
+	    System.out.println("Server address: " + player.getAddress());
+	    System.out.println("In port: " + player.getInPort());
+	    System.out.println("Out port: " + player.getOutPort());
+	}
     }
 
     /*
