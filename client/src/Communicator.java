@@ -51,7 +51,7 @@ public class Communicator {
     /**
      * Checks whether the server is reachable or not.
      *
-     * @return true if the server is reachable, false otherwise
+     * @return true if the server is reachable and responding, false otherwise
      */
     public boolean ping() {
 	try {
@@ -103,9 +103,29 @@ public class Communicator {
     }
 
     /**
-     * Pauses the currently playing song.
+     * Returns the address to the server currently connected to.
+     *
+     * @return The address to the server currently connected to
      */
-    public void pause() {
-	// TODO: Implement the method...
+    public String getAddress() {
+	return address;
+    }
+
+    /**
+     * Returns the in port used to read from the server.
+     *
+     * @return The in port used to read from the server
+     */
+    public int getInPort() {
+	return inPort;
+    }
+
+    /**
+     * Returns the out port used to write to the server.
+     *
+     * @return The out port used to write to the server
+     */
+    public int getOutPort() {
+	return outPort;
     }
 }

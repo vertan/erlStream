@@ -371,6 +371,33 @@ public class AudioManager {
     }
 
     /**
+     * Returns the address to the server currently connected to.
+     *
+     * @return The address to the server currently connected to
+     */
+    public String getAddress() {
+	return communicator.getAddress();
+    }
+
+    /**
+     * Returns the in port used to read from the server.
+     *
+     * @return The in port used to read from the server
+     */
+    public int getInPort() {
+	return communicator.getInPort();
+    }
+
+    /**
+     * Returns the out port used to write to the server.
+     *
+     * @return The out port used to write to the server
+     */
+    public int getOutPort() {
+	return communicator.getOutPort();
+    }
+
+    /**
      * Sorts the songs by title, artist, album or duration.
      * 
      * @param sortmode 0/1 for title ascending/descending, 2/3 for artist ascending/descending, 4/5 for album ascending/descending and 6/7 for duration ascending/descending
