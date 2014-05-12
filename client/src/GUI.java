@@ -11,6 +11,8 @@ public class GUI extends UI implements ActionListener{
 
 	private JButton playButton;
 
+	private boolean playButt = true;
+
 
 	public GUI(){
 		try{
@@ -62,7 +64,13 @@ public class GUI extends UI implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == playButton){
 			try{
-				manager.play();
+				if(playButt){
+					playButt = false;
+					manager.play();
+				} else {
+					playButt = true;
+					manager.pause();
+				}
 			} catch(Exception a){System.out.println("Failed!!!");};
 		}
 	}
