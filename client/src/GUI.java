@@ -11,6 +11,8 @@ public class GUI extends UI implements ActionListener{
 
 	private JButton playButton;
 
+	private boolean playButt = true;
+
 
 	public GUI(){
 		try{
@@ -38,14 +40,10 @@ public class GUI extends UI implements ActionListener{
 		((FlowLayout)panelRigth.getLayout()).setVgap(0);
 		((FlowLayout)panelRigth.getLayout()).setHgap(0);
 
-		playButton = new JButton (new ImageIcon("play.jpg"));
+		playButton = new JButton (new ImageIcon("play.png"));
 		playButton.setBorder(null);
 		playButton.addActionListener(this);
-		//b.addActionListener(new ActionListener(){
-		//	public void actionPreformed(ActionEvent e){
-		//		manager.play();
-		//	}
-		//});
+		
 		panelLeft.add(playButton);
 
 		mainPanel.add(panelLeft);
@@ -62,7 +60,15 @@ public class GUI extends UI implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == playButton){
 			try{
-				manager.play();
+				if(playButt){
+					playButton.setIcon(new ImageIcon("pause.png"));
+					playButt = false;
+					manager.play();
+				} else {
+					playButt = true;
+					playButton.setIcon(new ImageIcon("play.png"));
+					manager.pause();
+				}
 			} catch(Exception a){System.out.println("Failed!!!");};
 		}
 	}
