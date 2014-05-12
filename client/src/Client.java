@@ -11,11 +11,11 @@ public class Client {
     public static void main(String[] args) {
 	UI ui;
 
-	//if (args.length > 0 && args[0].equals("gui")) {
-	//ui = new GUI();
-	//} else {
-	ui = new CLI();
-	//}
+	if (args.length > 0 && args[0].equals("cli")) {
+	    ui = new CLI();
+	} else {
+	    ui = new GUI();
+	}
 
 	ui.start();
     }

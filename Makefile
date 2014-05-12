@@ -69,6 +69,9 @@ client:	$(JAVA_FILES)
 start_client: client
 	(cd client/bin && java $(JAVA_FLAGS) Client)
 
+start_client_cli: client
+	(cd client/bin && java $(JAVA_FLAGS) Client cli)
+
 test_client: client
 
 doc_client:
