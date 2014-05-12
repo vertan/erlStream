@@ -1,1 +1,1 @@
--record(song, {filename, title, album, artist, duration}).
+-record(song, {filename, title, artist, album, duration}).
