@@ -10,6 +10,8 @@ public class GUI extends UI implements ActionListener{
 	private int inPort, outPort;
 
 	private JButton playButton;
+	private JButton nextButton;
+	private JList songList;
 
 	private boolean playButt = true;
 
@@ -40,11 +42,31 @@ public class GUI extends UI implements ActionListener{
 		((FlowLayout)panelRigth.getLayout()).setVgap(0);
 		((FlowLayout)panelRigth.getLayout()).setHgap(0);
 
+		//playButton
 		playButton = new JButton (new ImageIcon("play.png"));
 		playButton.setBorder(null);
 		playButton.addActionListener(this);
-		
+		playButton.setOpaque(false);
+		playButton.setContentAreaFilled(false);
+		playButton.setBorderPainted(false);
+
+		//NextButton
+		nextButton = new JButton (new ImageIcon("pressedPlay.png"));
+		nextButton.setBorder(null);
+		nextButton.addActionListener(this);
+		nextButton.setOpaque(false);
+		nextButton.setContentAreaFilled(false);
+		nextButton.setBorderPainted(false);
+
+		//songList
+		try{
+		songList = new JList(manager.getSongs().toArray());
+		} catch (Exception a){System.out.println("Song list failed");};
+		//Add everything
 		panelLeft.add(playButton);
+		panelLeft.add(nextButton);
+
+		panelRigth.add(songList);
 
 		mainPanel.add(panelLeft);
 		mainPanel.add(panelRigth);
@@ -69,7 +91,17 @@ public class GUI extends UI implements ActionListener{
 					playButton.setIcon(new ImageIcon("play.png"));
 					manager.pause();
 				}
-			} catch(Exception a){System.out.println("Failed!!!");};
+			} catch(Exception a){System.out.println("Failed!!!");}
+		}
+		if(e.getSource() == nextButton){
+			try{
+				manager.next();
+			} catch(Exception b) {System.out.println("next failed");}
+		}
+		if(e.getSource() == songList){
+			try{
+				manager.play();
+			} catch(Exception a) {System.out.println("List play failed");}
 		}
 	}
 
