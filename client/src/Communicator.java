@@ -77,10 +77,16 @@ public class Communicator {
 	outSocket.close();
 	
 	List<Song> songs = new ArrayList<Song>();
-	String filename;
+	String fileinfo;
 
-	while((filename = fromServer.readLine()) != null) {
-	    songs.add(new Song(getBaseName(filename), "Unknown Title", "Unknown Album", "Unknown Artist", filename.length() * 16));
+	while((fileinfo = fromServer.readLine()) != null) {
+	    String[] split = fileinfo.split("\\|");
+	    String name = split[0];
+	    String title = split[1];
+	    String artist = split[2];
+	    String album = split[3];
+	    // int duration = Integer.parseInt(split[4]);
+	    songs.add(new Song(getBaseName(name), title, album, artist, 210));
 	}
 
 	return songs;

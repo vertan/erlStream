@@ -53,7 +53,8 @@ load([], Songs) ->
     lists:reverse(Songs);
 load([SongName|Rest], Songs) ->
     %% Parse ID3
-    Song = #song{filename=SongName,title="Title", artist="Artist", album="Album", duration="Duration"},
+    {Title, Artist, Album, _} = get_tags(SongName),
+    Song = #song{filename=SongName,title=Title, artist=Artist, album=Album, duration=210},
     load(Rest, [Song|Songs]).
 
 %% Checks if the given song exists in the given Database, and if so, returns {song, Data}
@@ -79,6 +80,33 @@ play(Database, [File|OffsetTime]) ->
 	false ->
 	    {error, "File does not exist in the database"}
     end.
+
+get_tags(File) ->
+    FilePath = lists:append("../files/", File),
+    case file:open(FilePath, [read, binary]) of
+	{ok, MP3} ->
+	    Result = case file:pread(MP3, {eof, -128}, 128) of
+			 {eof} ->
+			     eof;
+			 {error, Reason} ->
+			     Reason;
+			 {ok, <<"TAG", Tags/binary>>} -> 
+			     parse_tags(Tags);
+			 {ok, _} ->
+			     no_id3
+		     end,
+	    file:close(MP3),
+	    Result;
+	{error, Reason} ->
+	    io:format("Could not open file! ~s~n", [Reason])
+    end.
+
+parse_tags(Tags) ->
+    <<Title:30/binary, Artist:30/binary, Album:30/binary, Year:4/binary, Comment:30/binary, Genre:1/binary>> = Tags,
+    {string:strip(binary:bin_to_list(Title)), 
+     string:strip(binary:bin_to_list(Artist)),
+     string:strip(binary:bin_to_list(Album)),
+     string:strip(binary:bin_to_list(Year))}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
