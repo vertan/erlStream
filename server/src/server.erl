@@ -1,90 +1,118 @@
-%%%         File  : server.erl
-%%%      Authors  : Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>,
-%%%                 Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>,
-%%%                 Mikael Sernheim <mikael.sernheim@gmail.com>
-%%%  Description  : The content server handling all requests for the erlStream service.
-%%%      Created  : 16 Apr 2014
-%%%      Version  : 0.01
-
 -module(server).
--vsn(0.1).
--export([start/0]).
-
+-export([start/0, start_cli/0, list/1, refresh/1, stop/1]).
+-include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
-%% @doc Listens for commands and sends back the appropriate data.
-%%
-%% === Example ===
-%%
-%% <div class="example">```
-%% > utils:start().
-%% Command received: "list"
-%% '''
-%% </div>
--spec start() -> ok.
-
+%% Starts the server.
 start() ->
-    io:format("Welcome to the server!~n"),
-    {ok,InSocket} = gen_tcp:listen(1340, [{active, false}, {reuseaddr, true}]),
-    {ok,OutSocket} = gen_tcp:listen(1341, [{active, false}, {reuseaddr, true}]),
-    accept(InSocket, OutSocket).
+    process_flag(trap_exit, true),
 
-accept(InSocket, OutSocket) ->
-    {ok,InSocketOpen} = gen_tcp:accept(InSocket),
-    {ok,OutSocketOpen} = gen_tcp:accept(OutSocket),
-    loop(InSocketOpen, OutSocketOpen, ""),
-    accept(InSocket, OutSocket).
+    io:format("Starting database... "),
+    Database = spawn_link(database, start, []),
+    io:format("~w songs loaded!~n", [length(database:list(Database))]),
 
-loop(InSocket, OutSocket, Message) ->
-    case gen_tcp:recv(InSocket,0) of
-	{ok,Data} ->
-       	    loop(InSocket, OutSocket, lists:append([Message | [Data]]));
-	{error, closed} ->
-	    io:format("Command received: ~p~n", [Message]),
-	    ReturnMessage = parseCommand(string:tokens(Message, " ")),
-	    case ReturnMessage of
-		{song, Data} ->
-		    spawn(fun() -> send_data(OutSocket, Data) end);
-		_ ->
-		    spawn(fun() -> send_data(OutSocket, ReturnMessage) end)
-	    end;
-	{error,Reason} ->
-	    io:format("Error: ~s~n", [Reason])
+    InPort = 1340,
+    OutPort = 1341,
+    io:format("Starting listener... "),
+    Listener = spawn_link(listener, start, [Database, InPort, OutPort]),
+    io:format("ok!~n"),
+
+    Server = spawn_link(fun() -> loop({Listener, Database}) end),
+    io:format("Server started!~n"),
+    Server.
+
+%% Starts the server along with a command line interface.
+start_cli() ->
+    Server = start(),
+    cli_start(Server).
+
+%% Handles requests.
+loop({Listener, Database}) ->
+    receive
+	list ->
+	    Songs = database:list(Database),
+	    io:format("~w songs:~n~n", [length(Songs)]),
+	    [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
+	    loop({Listener, Database});
+	refresh ->
+	    io:format("Loading songs into database... "),
+	    database:refresh(Database),
+	    Songs = database:list(Database),
+	    io:format("~w songs loaded!~n", [length(Songs)]),
+	    loop({Listener, Database});
+	stop ->
+	    listener:stop(Listener),
+	    receive
+		{'EXIT', Listener, normal} ->
+		    io:format("listener exited.~n")
+	    after 5000 ->
+		    erlang:error(timeout)
+	    end,
+	    %% database:stop(Database),
+	    io:format("Server stopped.")
     end.
 
-send_data(OutSocket, Data) ->
-    gen_tcp:send(OutSocket, Data),
-    gen_tcp:close(OutSocket).
+%% List the available songs on the server.
+list(Server) ->
+    Server ! list,
+    ok.
 
-parseCommand([]) ->
-    "Please enter a command!";
-parseCommand([Command | Arguments]) ->
-    case Command of
-	"list" ->
-	    os:cmd("ls ../files");
-	"play" ->
-	    play(Arguments);
+%% Reloads the servers database.
+refresh(Server) ->
+    Server ! refresh,
+    ok.
+
+%% Stops the server.
+stop(Server) ->
+    Server ! stop,
+    ok.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%			             CLI                                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Starts the command line interface.
+cli_start(Server) ->
+    io:format("~n"),
+    io:format("##########################~n"),
+    io:format("# Welcome to the server! #~n"),
+    io:format("##########################~n"),    
+    print_help(),
+    cli(Server).
+
+%% Prints the available commands.
+print_help() ->
+    io:format("~n"),
+    io:format("Available commands~n"),
+    io:format("------------------~n"),
+    io:format("list \t\tList available files~n"),
+    io:format("refresh \tLoad files to database~n"),
+    io:format("help \t\tShow this dialog~n"),
+    io:format("stop \t\tStop the server~n"),
+    io:format("~n").
+
+%% Parses user input and interacts with the server.
+cli(Server) ->
+    case io:get_line("> ") of
+	"list\n" ->
+	    list(Server),
+	    cli(Server);
+	"refresh\n" ->
+	    refresh(Server),
+	    cli(Server);
+	"help\n" ->
+	    print_help(),
+	    cli(Server);
+	"stop\n" ->
+	    stop(Server);
+	"\n" ->
+	    cli(Server);
 	_ ->
-	    ["Unknown command '", Command, "'!"]
+	    io:format("Unkown command!~n"),
+	    cli(Server)
     end.
-    
-play([]) ->
-    "No file given!";
-play([File|OffsetTime]) ->
-    FilePath = lists:append("../files/", File),
-    Bitrate = 24000,
-    BitrateMS = Bitrate / 1000,
-    [StartTime|_] = OffsetTime,
-    {StartMS, StartRest} = string:to_integer(StartTime),
-    StartOffset = round(StartMS * BitrateMS),
-    case file:read_file(FilePath) of
-	{ok, Binary} ->
-	    <<OffsetChunk:StartOffset/binary, RestChunk/bitstring>> = Binary,
-	    {song, RestChunk};
-	{error, Reason} ->
-	    "Could not open file!"
-    end.
-    
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%			   EUnit Test Cases                                  %%
@@ -93,5 +121,5 @@ play([File|OffsetTime]) ->
 %% All functions with names ending with _test() or _test_() will be
 %% called automatically by add:test()
 
-parseCommand_test() ->
+list_test() ->
     tbi.

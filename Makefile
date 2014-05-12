@@ -36,7 +36,7 @@ server/ebin/%.beam: server/src/%.erl
 	$(ERLC) $(ERLC_FLAGS) -o server/ebin $<
 
 start_server: server
-	(cd server/ebin && erl -eval 'server:start(), init:stop()')
+	(cd server/ebin && erl -eval 'server:start_cli(), init:stop()')
 
 test_server: server
 	(cd server/ebin && erl -noinput -eval 'eunit:test({dir, "."}, [verbose]), init:stop()')
