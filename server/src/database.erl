@@ -42,7 +42,7 @@ refresh(Database) ->
  
 %% Loads song list from hard drive.
 load() ->
-    FilesString = os:cmd("ls ../files/ | egrep '*.mp3'"),
+    FilesString = os:cmd("ls ../files/ | egrep '.*.mp3'"),
     SongNames = string:tokens(FilesString, "\n"),
     load(SongNames).
 
