@@ -73,13 +73,13 @@ play(Database, [File|OffsetTime]) ->
 	    Bitrate = 192000 div 8,
 	    BitrateMS = Bitrate / 1000,
 	    [StartTime|_] = OffsetTime,
-	    {StartMS, StartRest} = string:to_integer(StartTime),
+	    {StartMS, _StartRest} = string:to_integer(StartTime),
 	    StartOffset = round(StartMS * BitrateMS),
 	    case file:read_file(FilePath) of
 		{ok, Binary} ->
-		    <<OffsetChunk:StartOffset/binary, RestChunk/bitstring>> = Binary,
+		    <<_OffsetChunk:StartOffset/binary, RestChunk/bitstring>> = Binary,
 		    {ok, RestChunk};
-		{error, Reason} ->
+		{error, _Reason} ->
 		    {error, "Failed to read file"}
 	    end;
 	false ->
@@ -103,7 +103,7 @@ get_tags(File) ->
     end.
 
 parse_tags(Tags) ->
-    <<Title:30/binary, Artist:30/binary, Album:30/binary, Year:4/binary, Comment:30/binary, Genre:1/binary>> = Tags,
+    <<Title:30/binary, Artist:30/binary, Album:30/binary, Year:4/binary, _Comment:30/binary, _Genre:1/binary>> = Tags,
     {string:strip(binary:bin_to_list(Title)), 
      string:strip(binary:bin_to_list(Artist)),
      string:strip(binary:bin_to_list(Album)),
@@ -114,7 +114,7 @@ get_duration(Filename) ->
     case file:read_file_info(FilePath) of
 	{ok, FileInfo} ->
 	    FileInfo#file_info.size div 24000;
-	{error, Reason} ->
+	{error, _Reason} ->
 	    0
     end.
 
