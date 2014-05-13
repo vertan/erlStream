@@ -72,24 +72,24 @@ public class Song {
     /**
      * Returns the duration of this song.
      *
-     * @return The duration of this song in hh:mm:ss format
+     * @return The duration of this song in m:ss format
      */
     public String getDurationString() {
 	return secondsToString(duration);
     }
 
     /**
-     * Converts a number of seconds to a String in hh:mm:ss format.
+     * Converts a number of seconds to a String in m:ss format.
      *
      * @param seconds The number of seconds to convert
-     * @return The given number of seconds in hh:mm:ss format
+     * @return The given number of seconds in m:ss format
      */
     public static String secondsToString(int seconds) {
-	int hours = seconds / 3600;
+	// int hours = seconds / 3600;
 	int minutes = (seconds % 3600) / 60;
 	seconds = seconds % 60;
 
-	return twoDigitString(hours) + ":" + twoDigitString(minutes) + ":" + twoDigitString(seconds);
+	return /* twoDigitString(hours) + ":" + */ minutes + ":" + twoDigitString(seconds);
     }
 
     private static String twoDigitString(int number) {

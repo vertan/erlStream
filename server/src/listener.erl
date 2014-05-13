@@ -1,3 +1,7 @@
+%%%        File : listener.erl
+%%%      Author : Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+%%% Description: Handles communication with clients
+
 -module(listener).
 -export([start/3, stop/1]).
 -include("song.hrl").

@@ -1,3 +1,7 @@
+%%%        File : database.erl
+%%%      Author : Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+%%% Description: Loading and handling songs on the server side
+
 -module(database).
 -export([start/0, list/1, refresh/1, play/2]).
 -include("song.hrl").
