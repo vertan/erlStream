@@ -52,8 +52,7 @@ load(SongNames) ->
 load([], Songs) ->
     lists:reverse(Songs);
 load([SongName|Rest], Songs) ->
-    %% Parse ID3
-    {Title, Artist, Album, _} = get_tags(SongName),
+    {Title, Artist, Album, _Year} = get_tags(SongName),
     Song = #song{filename=SongName,title=Title, artist=Artist, album=Album, duration=210},
     load(Rest, [Song|Songs]).
 
@@ -86,14 +85,10 @@ get_tags(File) ->
     case file:open(FilePath, [read, binary]) of
 	{ok, MP3} ->
 	    Result = case file:pread(MP3, {eof, -128}, 128) of
-			 {eof} ->
-			     eof;
-			 {error, Reason} ->
-			     Reason;
 			 {ok, <<"TAG", Tags/binary>>} -> 
 			     parse_tags(Tags);
-			 {ok, _} ->
-			     no_id3
+			 _ ->
+			     {"Unknown Title", "Unknown Artist", "Unknown Album", "Unknown Year"}
 		     end,
 	    file:close(MP3),
 	    Result;
