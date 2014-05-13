@@ -10,10 +10,11 @@ public class GUI extends UI {
 		public void run(){
 			while(true){
 				updateTimeline();
+				GUIchange = false;
 				try{
 					Thread.sleep(500);
 				} catch(InterruptedException e){}
-				GUIchange = false;
+				
 			}
 		}
 	}
