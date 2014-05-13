@@ -138,7 +138,7 @@ public class GUI extends UI {
 		});
 
 	//toggleShuffle
-		toggleShuffle = new JButton (new ImageIcon("shuffle.png"));
+		toggleShuffle = new JButton (new ImageIcon("shufflelila.png"));
 		toggleShuffle.setBorder(null);
 		toggleShuffle.setOpaque(false);
 		toggleShuffle.setContentAreaFilled(false);
@@ -156,11 +156,11 @@ public class GUI extends UI {
 			public void mouseClicked(MouseEvent e){
 				try{
 					if(shuffelBool){
-						toggleShuffle.setIcon(new ImageIcon("pressedshuffle.png"));
+						toggleShuffle.setIcon(new ImageIcon("shufflesvart.png"));
 						manager.setShuffle(!manager.shuffleIsOn());
 						shuffelBool = false;
 					} else {
-						toggleShuffle.setIcon(new ImageIcon("shuffle.png"));
+						toggleShuffle.setIcon(new ImageIcon("shufflelila.png"));
 						manager.setShuffle(!manager.shuffleIsOn());
 						shuffelBool = true;
 					}
