@@ -4,9 +4,16 @@ GROUP_NUMBER := 01
 
 .SILENT:
 
-all: server client
+all: clean server client test doc
 
-test: test_server test_client
+test: 
+	echo "Testing server..."
+	make test_server
+	echo
+	echo "Testing client... (Should print nothing)"
+	make test_client
+	echo "Tests done!"
+	echo
 
 doc: doc_server doc_client
 
@@ -48,7 +55,7 @@ clean_server:
 	rm -fr server/.#* *.dump
 	rm -fr server/ebin/*.dump
 	rm -fr server/ebin/*.beam
-	(cd server/doc/html && find . -name "*" -a ! -name overview.edoc -exec rm -rf {} \;)
+	(cd server/doc/html && find . -name "*" -a ! -name overview.edoc ! -name . -exec rm -rf {} \;)
 
 
 ##########
@@ -73,6 +80,8 @@ start_client_cli: client
 	(cd client/bin && java $(JAVA_FLAGS) Client cli)
 
 test_client: client
+	(cd client/src && $(JAVAC) $(JAVA_FLAGS) *Test*.java -d $(CLASS_DIR))
+	(cd client/bin && java $(JAVA_FLAGS) AllTests)
 
 doc_client:
 	javadoc client/src/*.java -d client/doc/
