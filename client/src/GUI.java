@@ -23,6 +23,7 @@ public class GUI extends UI {
 
 	private JButton playButton;
 	private JButton nextButton;
+	private JButton previousButton;
 	private JButton toggleShuffle;
 	private JList songList;
 	private JSlider timeline;
@@ -115,6 +116,27 @@ public class GUI extends UI {
 			}
 		});
 
+	//Previous
+		previousButton = new JButton (new ImageIcon("previous.png"));
+		previousButton.setBorder(null);
+		previousButton.setOpaque(false);
+		previousButton.setContentAreaFilled(false);
+		previousButton.setBorderPainted(false);
+		previousButton.addMouseListener(new MouseAdapter(){
+
+			public void mousePressed(MouseEvent e){
+				previousButton.setIcon(new ImageIcon("pressedprevious.png"));
+			}
+
+
+			public void mouseClicked(MouseEvent e){
+				try{
+					previousButton.setIcon(new ImageIcon("previous.png"));
+					manager.previous();
+				} catch(Exception b) {System.out.println("next failed");}
+			}
+		});
+
 	//toggleShuffle
 		toggleShuffle = new JButton (new ImageIcon("shuffle.png"));
 		toggleShuffle.setBorder(null);
@@ -153,6 +175,7 @@ public class GUI extends UI {
 			songList = new JList(manager.getSongs().toArray());
 		} catch (Exception a){System.out.println("Song list failed");};
 	//Add everything
+		panelLeft.add(previousButton);
 		panelLeft.add(playButton);
 		panelLeft.add(nextButton);
 		panelLeft.add(toggleShuffle);
