@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class GUI extends UI implements ActionListener{
+public class GUI extends UI {
 
 	private AudioManager manager;
 
@@ -45,19 +45,48 @@ public class GUI extends UI implements ActionListener{
 		//playButton
 		playButton = new JButton (new ImageIcon("play.png"));
 		playButton.setBorder(null);
-		playButton.addActionListener(this);
+		//playButton.addActionListener(this);
 		playButton.setOpaque(false);
 		playButton.setContentAreaFilled(false);
 		playButton.setBorderPainted(false);
-
+		playButton.addMouseListener(new MouseAdapter(){
+			public void mousePressed(MouseEvent e){
+			    if(playButt){
+				playButton.setIcon(new ImageIcon("pressedPlay.png"));
+			    } else {
+				playButton.setIcon(new ImageIcon("pressedPause.png"));
+			    }
+			}
+			public void mouseClicked(MouseEvent e){
+			    try{
+				if(playButt){
+				    playButton.setIcon(new ImageIcon("pause.png"));
+				    playButt = false;
+				    manager.play();
+				} else {
+				    playButton.setIcon(new ImageIcon("play.png"));	
+				    playButt = true;
+				    manager.pause();
+				}
+			    } catch(Exception a){System.out.println("Failed!!!");}			    
+			}
+		    });
+		
+		
 		//NextButton
 		nextButton = new JButton (new ImageIcon("pressedPlay.png"));
 		nextButton.setBorder(null);
-		nextButton.addActionListener(this);
 		nextButton.setOpaque(false);
 		nextButton.setContentAreaFilled(false);
 		nextButton.setBorderPainted(false);
-
+		nextButton.addMouseListener(new MouseAdapter(){
+			public void mouseClicked(MouseEvent e){
+			    try{
+				manager.next();
+			    } catch(Exception b) {System.out.println("next failed");}
+			}
+		    });
+		
 		//songList
 		try{
 		songList = new JList(manager.getSongs().toArray());
@@ -79,7 +108,7 @@ public class GUI extends UI implements ActionListener{
 
 	}
 
-	public void actionPerformed(ActionEvent e) {
+    /*	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == playButton){
 			try{
 				if(playButt){
@@ -104,7 +133,7 @@ public class GUI extends UI implements ActionListener{
 			} catch(Exception a) {System.out.println("List play failed");}
 		}
 	}
-
+    */
 
 
 }
