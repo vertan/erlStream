@@ -107,9 +107,9 @@ parse_tags(Tags) ->
 
 get_duration(Filename) ->
     FilePath = lists:append("../files/", Filename),
-    case read_file_info(FilePath) of
+    case file:read_file_info(FilePath) of
 	{ok, FileInfo} ->
-	    FileInfo#file_info.size div 8;
+	    FileInfo#file_info.size div 24000;
 	{error, Reason} ->
 	    0
     end.

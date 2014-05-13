@@ -85,8 +85,8 @@ public class Communicator {
 	    String title = split[1];
 	    String artist = split[2];
 	    String album = split[3];
-	    // int duration = Integer.parseInt(split[4]);
-	    songs.add(new Song(getBaseName(name), title, album, artist, 210));
+	    int duration = Integer.parseInt(split[4]);
+	    songs.add(new Song(getBaseName(name), title, album, artist, duration));
 	}
 
 	return songs;

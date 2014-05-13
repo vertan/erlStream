@@ -50,7 +50,7 @@ worker(Database, OutSocket, [Command | Arguments]) ->
     case Command of
 	"list" ->
 	    Songs = database:list(Database),
-	    SongTitles = [[Song#song.filename, "|", Song#song.title, "|", Song#song.artist, "|", Song#song.album, "|", Song#song.duration, "\n"] || Song <- Songs],
+	    SongTitles = [[Song#song.filename, "|", Song#song.title, "|", Song#song.artist, "|", Song#song.album, "|", integer_to_list(Song#song.duration), "\n"] || Song <- Songs],
 	    SongTitlesApp = lists:append(SongTitles),
 	    send_data(OutSocket, SongTitlesApp);
 	"play" ->
