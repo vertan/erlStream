@@ -89,7 +89,7 @@ public class Song {
 	int minutes = (seconds % 3600) / 60;
 	seconds = seconds % 60;
 
-	return /* twoDigitString(hours) + ":" + */ twoDigitString(minutes) + ":" + twoDigitString(seconds);
+	return /* twoDigitString(hours) + ":" + */ minutes + ":" + twoDigitString(seconds);
     }
 
     private static String twoDigitString(int number) {
