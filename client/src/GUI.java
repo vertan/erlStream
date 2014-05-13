@@ -38,11 +38,15 @@ public class GUI extends UI {
 
 	private JButton playButton;
 	private JButton nextButton;
+	private JButton previousButton;
+	private JButton toggleShuffle;
 	private JList songList;
 	private JSlider timeline;
     
 	private boolean playButt = true;
     private boolean GUIchange = false;
+	private boolean shuffelBool = true;
+
 
 	public GUI(){
 		try{
@@ -128,14 +132,70 @@ public class GUI extends UI {
 				} catch(Exception b) {System.out.println("next failed");}
 			}
 		});
+
+	//Previous
+		previousButton = new JButton (new ImageIcon("previous.png"));
+		previousButton.setBorder(null);
+		previousButton.setOpaque(false);
+		previousButton.setContentAreaFilled(false);
+		previousButton.setBorderPainted(false);
+		previousButton.addMouseListener(new MouseAdapter(){
+
+			public void mousePressed(MouseEvent e){
+				previousButton.setIcon(new ImageIcon("pressedprevious.png"));
+			}
+
+
+			public void mouseClicked(MouseEvent e){
+				try{
+					previousButton.setIcon(new ImageIcon("previous.png"));
+					manager.previous();
+				} catch(Exception b) {System.out.println("next failed");}
+			}
+		});
+
+	//toggleShuffle
+		toggleShuffle = new JButton (new ImageIcon("shufflelila.png"));
+		toggleShuffle.setBorder(null);
+		toggleShuffle.setOpaque(false);
+		toggleShuffle.setContentAreaFilled(false);
+		toggleShuffle.setBorderPainted(false);
+		toggleShuffle.addMouseListener(new MouseAdapter(){
+
+			public void mousePressed(MouseEvent e){
+				if(shuffelBool){
+					toggleShuffle.setIcon(new ImageIcon("pressedshufflelila.png"));
+				} else {
+					toggleShuffle.setIcon(new ImageIcon("pressedshufflesvart.png"));
+				}
+			}
+
+			public void mouseClicked(MouseEvent e){
+				try{
+					if(shuffelBool){
+						toggleShuffle.setIcon(new ImageIcon("shufflesvart.png"));
+						manager.setShuffle(!manager.shuffleIsOn());
+						shuffelBool = false;
+					} else {
+						toggleShuffle.setIcon(new ImageIcon("shufflelila.png"));
+						manager.setShuffle(!manager.shuffleIsOn());
+						shuffelBool = true;
+					}
+				} catch(Exception b) {System.out.println("next failed");}
+			}
+		});
+
+
 		
 	//songList
 		try{
 			songList = new JList(manager.getSongs().toArray());
 		} catch (Exception a){System.out.println("Song list failed");};
 	//Add everything
+		panelLeft.add(previousButton);
 		panelLeft.add(playButton);
 		panelLeft.add(nextButton);
+		panelLeft.add(toggleShuffle);
 
 		panelRigth.add(songList);
 		panelLeft.add(timeline);

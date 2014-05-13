@@ -217,7 +217,7 @@ public class AudioManager {
 	    Song next;
 
 	    if (shuffleIsOn()) {
-		next = songs.get(new Random().nextInt(songs.size()));
+		while ((next = songs.get(new Random().nextInt(songs.size()))) == getCurrentSong());
 	    } else {
 		int currentSongIndex = songs.indexOf(currentSong);
 
@@ -247,7 +247,7 @@ public class AudioManager {
 	    Song next;
 	
 	    if (shuffleIsOn()) {
-		next = songs.get(new Random().nextInt(songs.size()));
+		while ((next = songs.get(new Random().nextInt(songs.size()))) == getCurrentSong());
 	    } else {
 		int currentSongIndex = songs.indexOf(currentSong);
 
