@@ -54,7 +54,8 @@ load([], Songs) ->
     lists:reverse(Songs);
 load([SongName|Rest], Songs) ->
     {Title, Artist, Album, _Year} = get_tags(SongName),
-    Song = #song{filename=SongName,title=Title, artist=Artist, album=Album, duration=210},
+    Duration = get_duration(SongName),
+    Song = #song{filename=SongName,title=Title, artist=Artist, album=Album, duration=Duration},
     load(Rest, [Song|Songs]).
 
 %% Checks if the given song exists in the given Database, and if so, returns {song, Data}
@@ -65,7 +66,7 @@ play(Database, [File|OffsetTime]) ->
     receive
 	true ->
 	    FilePath = lists:append("../files/", File),
-	    Bitrate = 24000,
+	    Bitrate = 192000 div 8,
 	    BitrateMS = Bitrate / 1000,
 	    [StartTime|_] = OffsetTime,
 	    {StartMS, StartRest} = string:to_integer(StartTime),
@@ -83,7 +84,6 @@ play(Database, [File|OffsetTime]) ->
 
 get_tags(File) ->
     FilePath = lists:append("../files/", File),
-    read_file_info(FilePath),
     case file:open(FilePath, [read, binary]) of
 	{ok, MP3} ->
 	    Result = case file:pread(MP3, {eof, -128}, 128) of
@@ -104,6 +104,15 @@ parse_tags(Tags) ->
      string:strip(binary:bin_to_list(Artist)),
      string:strip(binary:bin_to_list(Album)),
      string:strip(binary:bin_to_list(Year))}.
+
+get_duration(Filename) ->
+    FilePath = lists:append("../files/", Filename),
+    case read_file_info(FilePath) of
+	{ok, FileInfo} ->
+	    FileInfo#file_info.size div 8;
+	{error, Reason} ->
+	    0
+    end.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
