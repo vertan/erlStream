@@ -43,6 +43,8 @@ public class GUI extends UI {
 	private JButton toggleShuffle;
 	private JList songList;
 	private JSlider timeline;
+	private JLabel songTime;
+	private JLabel curentTime;
     
 	private boolean playButt = true;
     private boolean GUIchange = false;
@@ -66,14 +68,20 @@ public class GUI extends UI {
 		JPanel mainPanel = new JPanel();
 		((FlowLayout)mainPanel.getLayout()).setVgap(0);
 		((FlowLayout)mainPanel.getLayout()).setHgap(0);
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-		JPanel panelLeft = new JPanel();
-		((FlowLayout)panelLeft.getLayout()).setVgap(0);
-		((FlowLayout)panelLeft.getLayout()).setHgap(0);
+		JPanel panelBot = new JPanel();
+		((FlowLayout)panelBot.getLayout()).setVgap(0);
+		((FlowLayout)panelBot.getLayout()).setHgap(0);
 
-		JPanel panelRigth = new JPanel();
-		((FlowLayout)panelRigth.getLayout()).setVgap(0);
-		((FlowLayout)panelRigth.getLayout()).setHgap(0);
+		JPanel panelTop = new JPanel();
+		((FlowLayout)panelTop.getLayout()).setVgap(0);
+		((FlowLayout)panelTop.getLayout()).setHgap(0);
+		panelTop.setLayout(new BoxLayout(panelTop, BoxLayout.Y_AXIS));
+
+		JPanel timelinePanel = new JPanel();
+		((FlowLayout)timelinePanel.getLayout()).setVgap(0);
+		((FlowLayout)timelinePanel.getLayout()).setHgap(0);
 
 
 		Thread update = new Thread(new Update());
@@ -134,6 +142,10 @@ public class GUI extends UI {
 			}
 		});
 
+	//Slider labels
+		curentTime = new JLabel("0:00");
+		songTime = new JLabel("0:00");
+
 	//Previous
 		previousButton = new JButton (new ImageIcon("previous.png"));
 		previousButton.setBorder(null);
@@ -193,16 +205,21 @@ public class GUI extends UI {
 			songList = new JList(manager.getSongs().toArray());
 		} catch (Exception a){System.out.println("Song list failed");};
 	//Add everything
-		panelLeft.add(previousButton);
-		panelLeft.add(playButton);
-		panelLeft.add(nextButton);
-		panelLeft.add(toggleShuffle);
+		panelBot.add(previousButton);
+		panelBot.add(playButton);
+		panelBot.add(nextButton);
+		panelBot.add(toggleShuffle);
 
-		panelRigth.add(songList);
-		panelLeft.add(timeline);
+		timelinePanel.add(curentTime);
+		timelinePanel.add(timeline);
+		timelinePanel.add(songTime);
 
-		mainPanel.add(panelLeft);
-		mainPanel.add(panelRigth);
+		panelTop.add(songList);
+		panelTop.add(timelinePanel);
+
+
+		mainPanel.add(panelTop);
+		mainPanel.add(panelBot);
 
 		frame.add(mainPanel);
 
@@ -216,13 +233,10 @@ public class GUI extends UI {
 
 		try{
 		    GUIchange = true; 
-		    Hashtable labelTable = new Hashtable();
 			timeline.setValue(manager.getPosition());
-			labelTable.put(new Integer(manager.getPosition()), new JLabel(Song.secondsToString(manager.getPosition())));
+			curentTime.setText(Song.secondsToString(manager.getPosition()));
+			songTime.setText(manager.getCurrentSong().getDurationString());
 			timeline.setMaximum(manager.getCurrentSong().getDuration());
-			labelTable.put(new Integer(manager.getCurrentSong().getDuration()), new JLabel(manager.getCurrentSong().getDurationString()));
-			timeline.setLabelTable(labelTable);
-			timeline.setPaintLabels(true);
 		}catch(Exception c) {System.out.println("Thread fucking things!!!");}
 	}
     
