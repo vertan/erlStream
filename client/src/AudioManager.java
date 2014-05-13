@@ -130,6 +130,7 @@ public class AudioManager {
 	this.offset = offset;
 	paused = false;
 
+	// Maybe this check isn't neccessary
 	if (isPlaying()) player.close();
 	
 	currentSong = song;
