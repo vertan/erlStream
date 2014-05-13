@@ -1,3 +1,7 @@
+%%%        File : server.erl
+%%%      Author : Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+%%% Description: Main code which handles requests
+
 -module(server).
 -export([start/0, start_cli/0, list/1, refresh/1, stop/1]).
 -include("song.hrl").
