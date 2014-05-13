@@ -28,6 +28,7 @@ public class GUI extends UI {
 	private JSlider timeline;
 
 	private boolean playButt = true;
+	private boolean shuffelBool = true;
 
 	public GUI(){
 		try{
@@ -122,15 +123,17 @@ public class GUI extends UI {
 		toggleShuffle.setBorderPainted(false);
 		toggleShuffle.addMouseListener(new MouseAdapter(){
 
-				public void mousePressed(MouseEvent e){
-				toggleShuffle.setIcon(new ImageIcon("pressedshuffle.png"));
-			}
-
-
 			public void mouseClicked(MouseEvent e){
 				try{
-					toggleShuffle.setIcon(new ImageIcon("shuffle.png"));
-					manager.setShuffle(!manager.shuffleIsOn());
+					if(shuffelBool){
+						toggleShuffle.setIcon(new ImageIcon("pressedshuffle.png"));
+						manager.setShuffle(!manager.shuffleIsOn());
+						shuffelBool = false;
+					} else {
+						toggleShuffle.setIcon(new ImageIcon("shuffle.png"));
+						manager.setShuffle(!manager.shuffleIsOn());
+						shuffelBool = true;
+					}
 				} catch(Exception b) {System.out.println("next failed");}
 			}
 		});
