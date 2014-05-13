@@ -123,6 +123,14 @@ public class GUI extends UI {
 		toggleShuffle.setBorderPainted(false);
 		toggleShuffle.addMouseListener(new MouseAdapter(){
 
+			public void mousePressed(MouseEvent e){
+				if(shuffelBool){
+					toggleShuffle.setIcon(new ImageIcon("pressedshufflelila.png"));
+				} else {
+					toggleShuffle.setIcon(new ImageIcon("pressedshufflesvart.png"));
+				}
+			}
+
 			public void mouseClicked(MouseEvent e){
 				try{
 					if(shuffelBool){
