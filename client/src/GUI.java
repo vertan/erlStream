@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Hashtable;
@@ -12,11 +13,25 @@ public class GUI extends UI {
 				try{
 					Thread.sleep(500);
 				} catch(InterruptedException e){}
+				GUIchange = false;
 			}
 		}
 	}
 
-	private AudioManager manager;
+    private class SlideListener implements ChangeListener{
+	
+	public void stateChanged(ChangeEvent event){
+	    JSlider source = (JSlider)event.getSource();
+	    if(!source.getValueIsAdjusting() && !GUIchange){
+		try{
+		    manager.play(manager.getCurrentSong(),source.getValue()*1000);
+		}catch(Exception e){System.out.println("Failed!");}
+	    }
+	}
+	
+    }
+    
+    private AudioManager manager;
 
 	private String adress;
 	private int inPort, outPort;
@@ -25,8 +40,9 @@ public class GUI extends UI {
 	private JButton nextButton;
 	private JList songList;
 	private JSlider timeline;
-
+    
 	private boolean playButt = true;
+    private boolean GUIchange = false;
 
 	public GUI(){
 		try{
@@ -90,9 +106,9 @@ public class GUI extends UI {
 
 	//Slider
 		timeline = new JSlider(JSlider.HORIZONTAL,0,100,0);
+		timeline.addChangeListener(new SlideListener());
 		
-		
-	//NextButton
+		//NextButton
 		nextButton = new JButton (new ImageIcon("next.png"));
 		nextButton.setBorder(null);
 		nextButton.setOpaque(false);
@@ -138,7 +154,8 @@ public class GUI extends UI {
 	public void updateTimeline(){
 
 		try{
-			Hashtable labelTable = new Hashtable();
+		    GUIchange = true; 
+		    Hashtable labelTable = new Hashtable();
 			timeline.setValue(manager.getPosition());
 			labelTable.put(new Integer(manager.getPosition()), new JLabel(Song.secondsToString(manager.getPosition())));
 			timeline.setMaximum(manager.getCurrentSong().getDuration());
@@ -147,8 +164,9 @@ public class GUI extends UI {
 			timeline.setPaintLabels(true);
 		}catch(Exception c) {System.out.println("Thread fucking things!!!");}
 	}
+    
 
-
+    
     /*	public void actionPerformed(ActionEvent e) {
 	if(e.getSource() == playButton){
 	try{
