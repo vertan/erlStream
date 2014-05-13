@@ -2,6 +2,7 @@
 -export([start/0, list/1, refresh/1, play/2]).
 -include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
+-include_lib("kernel/include/file.hrl").
 
 %% Starts the file manager.
 start() ->
@@ -82,6 +83,7 @@ play(Database, [File|OffsetTime]) ->
 
 get_tags(File) ->
     FilePath = lists:append("../files/", File),
+    read_file_info(FilePath),
     case file:open(FilePath, [read, binary]) of
 	{ok, MP3} ->
 	    Result = case file:pread(MP3, {eof, -128}, 128) of
