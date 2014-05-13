@@ -1,4 +1,4 @@
-%% @author Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+%% @author Filip Hedman (hedman.filip@gmail.com), Jeanette Castillo (jeanette.cas@hotmail.com), Robert Kallgren (robertkallgren@gmail.com), Oscar Mangard (oscarmangard@gmail.com), Mikael Sernheim (mikael.sernheim@gmail.com)
 %% @doc Main code which handles requests
 
 -module(server).
@@ -12,6 +12,8 @@
 %%<div class="example">'''
 %%'''
 %%</div>
+-spec start() -> pid().
+
 start() ->
     process_flag(trap_exit, true),
 
@@ -35,6 +37,8 @@ start() ->
 %%<div class="example">'''
 %%'''
 %%</div>
+-spec start_cli() -> ok.
+
 start_cli() ->
     Server = start(),
     cli_start(Server).
@@ -76,6 +80,9 @@ loop({Listener, Database}) ->
 %%<div class="example">'''
 %%'''
 %%</div>
+-spec list(Server) -> ok when
+      Server :: pid().
+
 list(Server) ->
     Server ! list,
     ok.
@@ -86,6 +93,9 @@ list(Server) ->
 %%<div class="example">'''
 %%'''
 %%</div>
+-spec refresh(Server) -> ok when
+      Server :: pid().
+
 refresh(Server) ->
     Server ! refresh,
     ok.
@@ -96,6 +106,9 @@ refresh(Server) ->
 %%<div class="example">'''
 %%'''
 %%</div>
+-spec stop(Server) -> ok when
+      Server :: pid().
+ 
 stop(Server) ->
     Server ! stop,
     ok.
@@ -111,6 +124,9 @@ stop(Server) ->
 %%<div class="example">'''
 %%'''
 %%</div>
+-spec cli_start(Server) -> ok when
+      Server :: pid().
+
 cli_start(Server) ->
     io:format("~n"),
     io:format("##########################~n"),
@@ -125,6 +141,8 @@ cli_start(Server) ->
 %%<div class="example">'''
 %%'''
 %%</div>
+-spec print_help() -> ok.
+
 print_help() ->
     io:format("~n"),
     io:format("Available commands~n"),
@@ -141,6 +159,10 @@ print_help() ->
 %%<div class="example">'''
 %%'''
 %%</div>
+-spec cli(Server) -> ok when
+      Server :: pid().
+ 
+
 cli(Server) ->
     case io:get_line("> ") of
 	"list\n" ->
