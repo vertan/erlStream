@@ -1,13 +1,17 @@
-%%%        File : server.erl
-%%%      Author : Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
-%%% Description: Main code which handles requests
+%% @author Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+%% @doc Main code which handles requests
 
 -module(server).
 -export([start/0, start_cli/0, list/1, refresh/1, stop/1]).
 -include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
-%% Starts the server.
+%% @doc Initializes and starts actors for server.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 start() ->
     process_flag(trap_exit, true),
 
@@ -25,12 +29,22 @@ start() ->
     io:format("Server started!~n"),
     Server.
 
-%% Starts the server along with a command line interface.
+%% @doc Starts the server along with a command line interface.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 start_cli() ->
     Server = start(),
     cli_start(Server).
 
-%% Handles requests.
+%% @doc Handles requests
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 loop({Listener, Database}) ->
     receive
 	list ->
@@ -56,17 +70,32 @@ loop({Listener, Database}) ->
 	    io:format("Server stopped.")
     end.
 
-%% List the available songs on the server.
+%% @doc List the available songs on the server.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 list(Server) ->
     Server ! list,
     ok.
 
-%% Reloads the servers database.
+%% @doc Reloads the servers database.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 refresh(Server) ->
     Server ! refresh,
     ok.
 
-%% Stops the server.
+%% @doc Stops the server.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 stop(Server) ->
     Server ! stop,
     ok.
@@ -76,7 +105,12 @@ stop(Server) ->
 %%			             CLI                                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Starts the command line interface.
+%% @doc Starts the command line interface.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 cli_start(Server) ->
     io:format("~n"),
     io:format("##########################~n"),
@@ -85,7 +119,12 @@ cli_start(Server) ->
     print_help(),
     cli(Server).
 
-%% Prints the available commands.
+%% @doc Prints the available commands.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 print_help() ->
     io:format("~n"),
     io:format("Available commands~n"),
@@ -96,7 +135,12 @@ print_help() ->
     io:format("stop \t\tStop the server~n"),
     io:format("~n").
 
-%% Parses user input and interacts with the server.
+%% @doc Parses user input and interacts with the server.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
 cli(Server) ->
     case io:get_line("> ") of
 	"list\n" ->
