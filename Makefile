@@ -65,8 +65,15 @@ clean_server:
 JAVAC := javac
 JAVA_FLAGS := -cp "../libs/*:. ../bin/*:."
 
-JAVA_FILES := $(wildcard client/src/*.java)
-CLASS_FILES := $(patsubst client/src/%.java,client/src/%.class,${JAVA_FILES})
+JAVA_FILES :=  	client/src/Client.java \
+		client/src/UI.java \
+		client/src/GUI.java \
+		client/src/CLI.java \
+		client/src/AudioManager.java \
+		client/src/Song.java \
+		client/src/Communicator.java
+
+CLASS_FILES := $(patsubst client/src/%.java,client/bin/%.class,${JAVA_FILES})
 
 CLASS_DIR := ../bin
 
@@ -84,7 +91,7 @@ test_client: client
 	(cd client/bin && java $(JAVA_FLAGS) AllTests)
 
 doc_client:
-	javadoc client/src/*.java -d client/doc/
+	javadoc $(JAVA_FILES) -d client/doc/
 
 clean_client:
 	rm -f client/bin/*.class
