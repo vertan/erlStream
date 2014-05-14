@@ -51,30 +51,26 @@ start_cli() ->
 %%</div>
 loop({Listener, Database}) ->
     receive
-	list ->
-	    Songs = database:list(Database),
-	    io:format("~w songs:~n~n", [length(Songs)]),
-	    [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
+	{Pid, list} ->
+	    Pid ! database:list(Database),
 	    loop({Listener, Database});
-	refresh ->
-	    io:format("Loading songs into database... "),
+	{Pid, refresh} ->
 	    database:refresh(Database),
-	    Songs = database:list(Database),
-	    io:format("~w songs loaded!~n", [length(Songs)]),
+	    Pid ! database:list(Database),
 	    loop({Listener, Database});
-	stop ->
+	{Pid, stop} ->
 	    listener:stop(Listener),
-	    receive
-		{'EXIT', Listener, normal} ->
-		    io:format("listener exited.~n")
-	    after 5000 ->
-		    erlang:error(timeout)
-	    end,
+	    %% receive
+	    %% 	{'EXIT', Listener, normal} ->
+	    %% 	    io:format("listener exited.~n")
+	    %% after 5000 ->
+	    %% 	    erlang:error(timeout)
+	    %% end,
 	    %% database:stop(Database),
-	    io:format("Server stopped.")
+	    Pid ! ok
     end.
 
-%% @doc List the available songs on the server.
+%% @doc Returns a string with the filenames of the available songs on the server.
 %%
 %% === Example ===
 %%<div class="example">'''
@@ -84,8 +80,13 @@ loop({Listener, Database}) ->
       Server :: pid().
 
 list(Server) ->
-    Server ! list,
-    ok.
+    Server ! {self(), list},
+    receive
+	Songs ->
+	    io:format("~p songs:~n~n", [length(Songs)]),
+	    [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
+	    io:format("~n")
+    end.
 
 %% @doc Reloads the servers database.
 %%
@@ -97,8 +98,12 @@ list(Server) ->
       Server :: pid().
 
 refresh(Server) ->
-    Server ! refresh,
-    ok.
+    Server ! {self(), refresh},
+    io:format("Loading songs into database... "),
+    receive
+	Songs ->
+	    io:format("~p songs loaded!~n", [length(Songs)])
+    end.
 
 %% @doc Stops the server.
 %%
@@ -110,8 +115,12 @@ refresh(Server) ->
       Server :: pid().
  
 stop(Server) ->
-    Server ! stop,
-    ok.
+    Server ! {self(), stop},
+    io:format("Stopping server... "),
+    receive
+	ok ->
+	    io:format("server stopped.~n")
+    end.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -147,7 +156,7 @@ print_help() ->
     io:format("~n"),
     io:format("Available commands~n"),
     io:format("------------------~n"),
-    io:format("list \t\tList available files~n"),
+    io:format("ls \t\tList available songs~n"),
     io:format("refresh \tLoad files to database~n"),
     io:format("help \t\tShow this dialog~n"),
     io:format("stop \t\tStop the server~n"),
@@ -162,10 +171,9 @@ print_help() ->
 -spec cli(Server) -> ok when
       Server :: pid().
  
-
 cli(Server) ->
     case io:get_line("> ") of
-	"list\n" ->
+	"ls\n" ->
 	    list(Server),
 	    cli(Server);
 	"refresh\n" ->
@@ -179,7 +187,7 @@ cli(Server) ->
 	"\n" ->
 	    cli(Server);
 	_ ->
-	    io:format("Unkown command!~n"),
+	    io:format("Unkown command. Type 'help' to see available options.~n"),
 	    cli(Server)
     end.
 

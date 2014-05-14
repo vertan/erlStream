@@ -24,14 +24,19 @@ loop({Database, Workers, InSocket, OutSocket}) ->
 
 %% Listens for requests from clients
 listen(Database, InSocket, OutSocket) ->
-    listen(Database, InSocket, OutSocket, "").
+    listen(Database, InSocket, OutSocket, "", "Unknown").
 
-listen(Database, InSocket, OutSocket, Message) ->
+listen(Database, InSocket, OutSocket, Message, Address) ->
     case gen_tcp:recv(InSocket,0) of
 	{ok,Data} ->
-       	    listen(Database, InSocket, OutSocket, lists:append([Message | [Data]]));
+	    case inet:peername(InSocket) of
+		{ok, {UpdatedAddress, _Port}} ->
+		    listen(Database, InSocket, OutSocket, lists:append([Message | [Data]]), UpdatedAddress);
+		{error, _} ->
+		    listen(Database, InSocket, OutSocket, lists:append([Message | [Data]]), Address)
+	    end;
 	{error, closed} ->
-	    io:format("Command received: ~p~n", [Message]),
+	    io:format("Command received from ~s: ~s~n", [inet_parse:ntoa(Address), Message]),
 	    spawn(fun() -> worker(Database, OutSocket, string:tokens(Message, " ")) end);
 	{error, Reason} ->
 	    io:format("Error: ~s~n", [Reason])
