@@ -102,7 +102,7 @@ public class Communicator {
      */
     public InputStream play(Song song, int offset) throws Exception {
 	initConnection();
-	toServer.writeBytes("play " + song.getFileName() + ".mp3 " + offset);
+	toServer.writeBytes("play " + offset + " " + song.getFileName() + ".mp3");
 	outSocket.close();
     
 	return inSocket.getInputStream();

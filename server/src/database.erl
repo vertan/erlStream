@@ -65,15 +65,15 @@ load([SongName|Rest], Songs) ->
 %% Checks if the given song exists in the given Database, and if so, returns {song, Data}
 play(_, []) ->
     {error, "No file given"};
-play(Database, [File|OffsetTime]) ->
+play(Database, [OffsetTime|FileName]) ->
+    File = string:join(FileName, " "),
     Database ! {self(), exists, File},
     receive
 	true ->
 	    FilePath = lists:append("../files/", File),
 	    Bitrate = 192000 div 8,
 	    BitrateMS = Bitrate / 1000,
-	    [StartTime|_] = OffsetTime,
-	    {StartMS, _StartRest} = string:to_integer(StartTime),
+	    {StartMS, _StartRest} = string:to_integer(OffsetTime),
 	    StartOffset = round(StartMS * BitrateMS),
 	    case file:read_file(FilePath) of
 		{ok, Binary} ->
