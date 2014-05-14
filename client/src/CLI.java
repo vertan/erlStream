@@ -255,8 +255,8 @@ public class CLI extends UI {
 	    longestAlbum = song.getAlbum().length() > longestAlbum ? song.getAlbum().length() : longestAlbum;
 	}
 
-	String format = "%-" + longestIndex + "s " + "%-" + longestFileName + "s  " + "%-" + 
-	    longestArtist + "s  " + "%-" + longestAlbum + "s  " + "%" + longestDuration + "s";
+	String format = "%-" + longestIndex + "s " + "%-" + longestFileName + "s   " + "%-" + 
+	    longestArtist + "s   " + "%-" + longestAlbum + "s   " + "%" + longestDuration + "s";
 
 	String top = String.format(format, "", headers[0], headers[1], headers[2], headers[3]);
 
