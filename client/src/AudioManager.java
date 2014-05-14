@@ -112,7 +112,8 @@ public class AudioManager {
 	if (songs.isEmpty()) {
 	    return; // throw?
 	}
-	
+
+	// TODO: Throw exception if no song exists
 	play(songs.get(0), 0);
     }
 
@@ -130,6 +131,7 @@ public class AudioManager {
 	this.offset = offset;
 	paused = false;
 
+	// Maybe this check isn't neccessary
 	if (isPlaying()) player.close();
 	
 	currentSong = song;

@@ -88,7 +88,11 @@ public class CLI extends UI {
 	    break;
 	case "play":
 	    command.remove(0);
-	    play(command);
+	    play(command, 0);
+	    break;
+	case "playat":
+	    command.remove(0);
+	    playat(command);
 	    break;
 	case "pause":
 	    pause();
@@ -184,7 +188,7 @@ public class CLI extends UI {
      * Prints the available commands.
      */
     private void help() {
-	String format = "%-14s %s\n";
+	String format = "%-22s %s\n";
 
 	System.out.println("");
 	System.out.println("Available commands");
@@ -192,6 +196,7 @@ public class CLI extends UI {
 	if (connected) {
 	    System.out.printf(format, "ls", "List available songs");
 	    System.out.printf(format, "play <Title>", "Play song");
+	    System.out.printf(format, "playat <time> <Title>", "Play song at the given time (seconds)");
 	    System.out.printf(format, "pause", "Pause the current song");
 	    System.out.printf(format, "next", "Play the next song in the queue");
 	    System.out.printf(format, "previous",  "Play the previous song in the queue");
@@ -250,8 +255,8 @@ public class CLI extends UI {
 	    longestAlbum = song.getAlbum().length() > longestAlbum ? song.getAlbum().length() : longestAlbum;
 	}
 
-	String format = "%-" + longestIndex + "s " + "%-" + longestFileName + "s  " + "%-" + 
-	    longestArtist + "s  " + "%-" + longestAlbum + "s  " + "%" + longestDuration + "s";
+	String format = "%-" + longestIndex + "s " + "%-" + longestFileName + "s   " + "%-" + 
+	    longestArtist + "s   " + "%-" + longestAlbum + "s   " + "%" + longestDuration + "s";
 
 	String top = String.format(format, "", headers[0], headers[1], headers[2], headers[3]);
 
@@ -302,11 +307,11 @@ public class CLI extends UI {
 
 	printSongTable(songs);
     }
-    
+
     /*
      * Plays a song.
      */
-    private void play(List<String> arguments) {
+    private void play(List<String> arguments, int offset) {
 	if (!connected) {
 	    printConnectionMessage();
 	    return;
@@ -316,34 +321,26 @@ public class CLI extends UI {
 	    try {
 		player.play();
 		status();
-		return;
 	    } catch (Throwable e) {
 		System.out.println("Error " + e.getMessage());
 		e.printStackTrace();
 	    }
-	}
-
-	if (arguments.size() > 2) {
-	    printUsage("play / play <Title> / play <Title> <time>");
 	    return;
 	}
-	
-	int offset = 0;
-	
-	if(arguments.size() > 1) {
-	    try {
-		offset = Integer.parseInt(arguments.get(1)) * 1000;
-	    } catch (NumberFormatException e) {
-		printUsage("play / play <Title> / play <Title> <time>");
-		return;
-	    }
-	}	
-	
+
+	// TODO: Allow more than one whitespace in song names?
+	String title = arguments.get(0);
+	if (arguments.size() > 1) {
+	    for (int i = 1; i < arguments.size(); i++) {
+		title += " " + arguments.get(i);
+	    }	
+	}
+		
 	try {
-	    player.playSongByTitle(arguments.get(0), offset);
+	    player.playSongByTitle(title, offset);
 	    status();
 	} catch (AudioManager.BadSongException e) {
-	    System.out.println("There is no song titled \"" + arguments.get(0) + "\".");
+	    System.out.println("There is no song titled \"" + title + "\".");
 	} catch (ConnectException e) {
 	    // TODO: Handle this better
 	    printError("Failed to connect to server!");
@@ -351,6 +348,32 @@ public class CLI extends UI {
 	    System.out.println("Error " + e.getMessage());
 	    e.printStackTrace();
 	}
+    }
+    
+    /*
+     * Plays a song with an offset.
+     */
+    private void playat(List<String> arguments) {
+	if (!connected) {
+	    printConnectionMessage();
+	    return;
+	}
+	
+	if (arguments.size() < 2) {
+	    printUsage("playat <time> <Title>");
+	    return;
+	}
+
+	int offset = 0;
+	try {
+	    offset = Integer.parseInt(arguments.get(0)) * 1000;
+	} catch (NumberFormatException e) {
+	    printUsage("playat <time> <Title>");
+	    return;
+	}
+
+	arguments.remove(0);
+	play(arguments, offset);
     }
 
     /*
