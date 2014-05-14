@@ -20,7 +20,6 @@ public class GUI extends UI {
 	}
 
     private class SlideListener implements ChangeListener{
-	
 	public void stateChanged(ChangeEvent event){
 	    JSlider source = (JSlider)event.getSource();
 	    if(!source.getValueIsAdjusting() && !GUIchange){
@@ -28,8 +27,7 @@ public class GUI extends UI {
 		    manager.play(manager.getCurrentSong(),source.getValue()*1000);
 		}catch(Exception e){System.out.println("Failed!");}
 	    }
-	}
-	
+	}	
     }
     
     private AudioManager manager;
@@ -203,7 +201,7 @@ public class GUI extends UI {
 
 		mainPanel.add(panelLeft);
 		mainPanel.add(panelRigth);
-
+		mainPanel.setLayout(new BoxLayout(mainPanel,0));
 		frame.add(mainPanel);
 
 		frame.setLocationRelativeTo(null);
