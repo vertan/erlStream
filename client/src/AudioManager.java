@@ -112,7 +112,8 @@ public class AudioManager {
 	if (songs.isEmpty()) {
 	    return; // throw?
 	}
-	
+
+	// TODO: Throw exception if no song exists
 	play(songs.get(0), 0);
     }
 
