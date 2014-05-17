@@ -7,33 +7,35 @@
 -include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+-define(TCP_OPTIONS, [{active, false}, {reuseaddr, true}]).
+
 %% Starts the listener.
 start(Database, InPort, OutPort) ->
     %% TODO: Take care of other return types.
-    {ok,InSocket} = gen_tcp:listen(InPort, [{active, false}, {reuseaddr, true}]),
-    {ok,OutSocket} = gen_tcp:listen(OutPort, [{active, false}, {reuseaddr, true}]),
+    {ok,InSocket} = gen_tcp:listen(InPort, ?TCP_OPTIONS),
+    {ok,OutSocket} = gen_tcp:listen(OutPort, ?TCP_OPTIONS),
     %% accept(InSocket, OutSocket).
-    loop({Database, [], InSocket, OutSocket}).
+    accept({Database, [], InSocket, OutSocket}).
 
-%% Handles requests.
-loop({Database, Workers, InSocket, OutSocket}) ->
+%% Waits for clients to connect.
+accept({Database, Workers, InSocket, OutSocket}) ->
     {ok,InSocketOpen} = gen_tcp:accept(InSocket),
     {ok,OutSocketOpen} = gen_tcp:accept(OutSocket),
-    listen(Database, InSocketOpen, OutSocketOpen),
-    loop({Database, Workers, InSocket, OutSocket}).
+    loop(Database, InSocketOpen, OutSocketOpen),
+    accept({Database, Workers, InSocket, OutSocket}).
 
-%% Listens for requests from clients
-listen(Database, InSocket, OutSocket) ->
-    listen(Database, InSocket, OutSocket, "", "Unknown").
+%% Reads and acts upon requests from clients.
+loop(Database, InSocket, OutSocket) ->
+    loop(Database, InSocket, OutSocket, "", "Unknown").
 
-listen(Database, InSocket, OutSocket, Message, Address) ->
+loop(Database, InSocket, OutSocket, Message, Address) ->
     case gen_tcp:recv(InSocket,0) of
 	{ok,Data} ->
 	    case inet:peername(InSocket) of
 		{ok, {UpdatedAddress, _Port}} ->
-		    listen(Database, InSocket, OutSocket, lists:append([Message | [Data]]), UpdatedAddress);
+		    loop(Database, InSocket, OutSocket, lists:append([Message | [Data]]), UpdatedAddress);
 		{error, _} ->
-		    listen(Database, InSocket, OutSocket, lists:append([Message | [Data]]), Address)
+		    loop(Database, InSocket, OutSocket, lists:append([Message | [Data]]), Address)
 	    end;
 	{error, closed} ->
 	    io:format("Command received from ~s: ~s~n", [inet_parse:ntoa(Address), Message]),
@@ -47,7 +49,7 @@ stop(Listener) ->
     %% [exit(Worker, shutdown) || Worker <- Workers],
     exit(Listener, shutdown).
 
-%% Sends data through
+%% Sends data.
 send_data(OutSocket, Data) ->
     gen_tcp:send(OutSocket, Data),
     gen_tcp:close(OutSocket).
