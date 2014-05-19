@@ -3,43 +3,46 @@
 %%% Description: Handles communication with clients
 
 -module(listener).
--export([start/3, stop/1]).
+-export([start/2, stop/1]).
 -include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--define(TCP_OPTIONS, [{active, false}, {reuseaddr, true}]).
+-define(TCP_OPTIONS, [{packet, line}, {active, false}, {reuseaddr, true}]).
 
 %% Starts the listener.
-start(Database, InPort, OutPort) ->
+start(Database, Port) ->
     %% TODO: Take care of other return types.
-    {ok,InSocket} = gen_tcp:listen(InPort, ?TCP_OPTIONS),
-    {ok,OutSocket} = gen_tcp:listen(OutPort, ?TCP_OPTIONS),
-    %% accept(InSocket, OutSocket).
-    accept({Database, [], InSocket, OutSocket}).
+    {ok,ListenSocket} = gen_tcp:listen(Port, ?TCP_OPTIONS),
+    accept(Database, ListenSocket).
 
 %% Waits for clients to connect.
-accept({Database, Workers, InSocket, OutSocket}) ->
-    {ok,InSocketOpen} = gen_tcp:accept(InSocket),
-    {ok,OutSocketOpen} = gen_tcp:accept(OutSocket),
-    loop(Database, InSocketOpen, OutSocketOpen),
-    accept({Database, Workers, InSocket, OutSocket}).
+accept(Database, ListenSocket) ->
+    {ok,Socket} = gen_tcp:accept(ListenSocket),
+    spawn(fun() -> loop(Database, Socket) end),
+    accept(Database, ListenSocket).
 
 %% Reads and acts upon requests from clients.
-loop(Database, InSocket, OutSocket) ->
-    loop(Database, InSocket, OutSocket, "", "Unknown").
-
-loop(Database, InSocket, OutSocket, Message, Address) ->
-    case gen_tcp:recv(InSocket,0) of
+loop(Database, Socket) ->
+    Address = case inet:peername(Socket) of
+		  {ok, {Addr, _Port}} ->
+		      inet_parse:ntoa(Addr);
+		  {error, _} ->
+		      "Unknown"
+	      end,
+    case gen_tcp:recv(Socket,0) of
 	{ok,Data} ->
-	    case inet:peername(InSocket) of
-		{ok, {UpdatedAddress, _Port}} ->
-		    loop(Database, InSocket, OutSocket, lists:append([Message | [Data]]), UpdatedAddress);
-		{error, _} ->
-		    loop(Database, InSocket, OutSocket, lists:append([Message | [Data]]), Address)
+	    Message = string:strip(Data, both, $\n),
+	    io:format("Command received from ~s: ~s~n", [Address, Message]),
+	    [Command|Arguments] = string:tokens(Message, " "),
+	    case Command of
+		"list" ->
+		    worker(Database, Socket, list),
+		    loop(Database, Socket);
+		"play" ->
+		    worker(Database, Socket, {play, Arguments})
 	    end;
 	{error, closed} ->
-	    io:format("Command received from ~s: ~s~n", [inet_parse:ntoa(Address), Message]),
-	    spawn(fun() -> worker(Database, OutSocket, string:tokens(Message, " ")) end);
+	    io:format("~s disconnected!~n", [Address]);
 	{error, Reason} ->
 	    io:format("Error: ~s~n", [Reason])
     end.
@@ -50,29 +53,29 @@ stop(Listener) ->
     exit(Listener, shutdown).
 
 %% Sends data.
-send_data(OutSocket, Data) ->
-    gen_tcp:send(OutSocket, Data),
-    gen_tcp:close(OutSocket).
+send_data(Socket, Data) ->
+    gen_tcp:send(Socket, Data).
 
-%% Parses the given command and sends the data back with the sockets.
-worker(_, _, []) ->
-    "Unknown command!";
-worker(Database, OutSocket, [Command | Arguments]) ->
+%% Sends a song and closes the socket.
+send_song(Socket, Data) ->
+    gen_tcp:send(Socket, Data),
+    gen_tcp:close(Socket).
+
+%% Does the given task and sends the data back through the socket.
+worker(Database, Socket, Command) ->
     case Command of
-	"list" ->
+	list ->
 	    Songs = database:list(Database),
 	    SongTitles = [[Song#song.filename, "|", Song#song.title, "|", Song#song.artist, "|", Song#song.album, "|", integer_to_list(Song#song.duration), "\n"] || Song <- Songs],
 	    SongTitlesApp = lists:append(SongTitles),
-	    send_data(OutSocket, SongTitlesApp);
-	"play" ->
+	    send_data(Socket, SongTitlesApp ++ "end\n");
+	{play, Arguments} ->
 	    case database:play(Database, Arguments) of
 		{ok, Data} ->
-		    send_data(OutSocket, Data);
+		    send_song(Socket, Data);
 		{error, Reason} ->
-		    send_data(OutSocket, Reason)
-	    end;
-	_ ->
-	    ["Unknown command '", Command, "'!"]
+		    send_data(Socket, Reason)
+	    end
     end.
     
 

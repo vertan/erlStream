@@ -51,7 +51,7 @@ public class GUI extends UI {
 
 	public GUI(){
 		try{
-			manager = new AudioManager("bitninja.se",1341,1340);
+			manager = new AudioManager("bitninja.se",1340);
 		} catch(Exception e){System.out.println("AudioManager failed!!!");};
 	}
 

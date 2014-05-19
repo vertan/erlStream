@@ -21,10 +21,9 @@ start() ->
     Database = spawn_link(database, start, []),
     io:format("~w songs loaded!~n", [length(database:list(Database))]),
 
-    InPort = 1340,
-    OutPort = 1341,
+    Port = 1340,
     io:format("Starting listener... "),
-    Listener = spawn_link(listener, start, [Database, InPort, OutPort]),
+    Listener = spawn_link(listener, start, [Database, Port]),
     io:format("ok!~n"),
 
     Server = spawn_link(fun() -> loop({Listener, Database}) end),

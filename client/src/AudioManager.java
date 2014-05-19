@@ -94,8 +94,8 @@ public class AudioManager {
      * @param inPort The port to read data from
      * @param outPort The port to write data to
      */
-    public AudioManager(String address, int inPort, int outPort) throws Exception {
-	communicator = new Communicator(address, inPort, outPort);
+    public AudioManager(String address, int port) throws Exception {
+	communicator = new Communicator(address, port);
 	listener = new TransitionHandler();
 	songs = getSongs();
     }
@@ -384,21 +384,12 @@ public class AudioManager {
     }
 
     /**
-     * Returns the in port used to read from the server.
+     * Returns the port to the server to communicate with.
      *
-     * @return The in port used to read from the server
+     * @return The port to the server to communicate with
      */
-    public int getInPort() {
-	return communicator.getInPort();
-    }
-
-    /**
-     * Returns the out port used to write to the server.
-     *
-     * @return The out port used to write to the server
-     */
-    public int getOutPort() {
-	return communicator.getOutPort();
+    public int getPort() {
+	return communicator.getPort();
     }
 
     /**

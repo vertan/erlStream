@@ -11,9 +11,9 @@ import java.net.*;
  */
 public class Communicator {
     private String address;
-    private int inPort, outPort;
+    private int port;
 
-    private Socket inSocket, outSocket;
+    private Socket connection;
     private DataOutputStream toServer;
     private BufferedReader fromServer;
     
@@ -24,10 +24,10 @@ public class Communicator {
      * @param inPort The port to read data from
      * @param outPort The port to write data to
      */
-    public Communicator(String address, int inPort, int outPort) throws Exception {
+    public Communicator(String address, int port) throws Exception {
 	this.address = address;
-	this.inPort = inPort;
-	this.outPort = outPort;
+	this.port = port;
+	initConnection();
     }
 
     /*
@@ -42,10 +42,9 @@ public class Communicator {
      * Initializes the variables inSocket, outSocket, toServer and fromServer.
      */
     private void initConnection() throws Exception {
-	inSocket = new Socket(address, inPort);
-	outSocket = new Socket(address, outPort);
-	toServer = new DataOutputStream(outSocket.getOutputStream());
-	fromServer = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
+	connection = new Socket(address, port);
+	toServer = new DataOutputStream(connection.getOutputStream());
+	fromServer = new BufferedReader(new InputStreamReader(connection.getInputStream()));
     }
 
     /**
@@ -72,14 +71,12 @@ public class Communicator {
      * @see Song
      */
     public List<Song> list() throws Exception {
-	initConnection();
-	toServer.writeBytes("list");
-	outSocket.close();
+	toServer.writeBytes("list\n");
 	
 	List<Song> songs = new ArrayList<Song>();
 	String fileinfo;
 
-	while((fileinfo = fromServer.readLine()) != null) {
+	while((fileinfo = fromServer.readLine()) != null && !fileinfo.equals("end")) {
 	    String[] split = fileinfo.split("\\|");
 	    String name = split[0];
 	    String title = split[1];
@@ -93,45 +90,37 @@ public class Communicator {
     }
 
     /**
-     * Plays the given song if it exists on the server.
+     * Returns an InputStream object containing the data for the given song.
      *
-     * @param song The song to play 
+     * @param song The song which data to return
      * @param offset The number of milliseconds to skip ahead
      * @return true if the file exists on the server and the playback succeeded, false otherwise
      * @see Song
      */
     public InputStream play(Song song, int offset) throws Exception {
-	initConnection();
-	toServer.writeBytes("play " + offset + " " + song.getFileName() + ".mp3");
-	outSocket.close();
+	Socket tempSocket = new Socket(address, port);
+	DataOutputStream out = new DataOutputStream(tempSocket.getOutputStream());
+
+	out.writeBytes("play " + offset + " " + song.getFileName() + ".mp3\n");
     
-	return inSocket.getInputStream();
+	return tempSocket.getInputStream();
     }
 
     /**
-     * Returns the address to the server currently connected to.
+     * Returns the address to the server to communicate with.
      *
-     * @return The address to the server currently connected to
+     * @return The address to the server to communicate with
      */
     public String getAddress() {
 	return address;
     }
 
     /**
-     * Returns the in port used to read from the server.
+     * Returns the port to the server to communicate with.
      *
-     * @return The in port used to read from the server
+     * @return The port to the server to communicate with
      */
-    public int getInPort() {
-	return inPort;
-    }
-
-    /**
-     * Returns the out port used to write to the server.
-     *
-     * @return The out port used to write to the server
-     */
-    public int getOutPort() {
-	return outPort;
+    public int getPort() {
+	return port;
     }
 }

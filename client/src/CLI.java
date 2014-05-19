@@ -157,22 +157,33 @@ public class CLI extends UI {
 	}
 
 	String address = "localhost";
+	int port = 1340;
 
 	if (arguments.size() > 0) {
 	    address = arguments.get(0);
 	} else {
-	    System.out.print("Server address (Press RETURN for localhost): ");
+	    System.out.print("Server address (default " + address + "): ");
 	    String input = sc.nextLine();
 	    
 	    if (!input.equals("")) {
 		address = input;
+	    }
+
+	    System.out.print("Port (default " + port + "): ");
+	    input = sc.nextLine();
+	    
+	    if (!input.equals("")) {
+		try {
+		    port = Integer.parseInt(input);
+		} catch (NumberFormatException e) {
+		}
 	    }
 	}
 
 	System.out.print("Connecting... ");
 
 	try {
-	    AudioManager test = new AudioManager(address, 1341, 1340);
+	    AudioManager test = new AudioManager(address, port);
 	    if (player != null) player.stop();
 	    player = test;
 	    connected = true;
@@ -224,8 +235,7 @@ public class CLI extends UI {
 
 	if (player != null) {
 	    System.out.println("Server address: " + player.getAddress());
-	    System.out.println("In port: " + player.getInPort());
-	    System.out.println("Out port: " + player.getOutPort());
+	    System.out.println("Port: " + player.getPort());
 	}
     }
 
