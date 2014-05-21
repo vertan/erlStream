@@ -3,6 +3,8 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class GUI extends UI {
 
@@ -202,6 +204,22 @@ public class GUI extends UI {
 		try{
 			songList = new JList(manager.getSongs().toArray());
 		} catch (Exception a){System.out.println("Song list failed");};
+                         
+                songList.addMouseListener(new MouseAdapter(){
+                    public void mouseClicked(MouseEvent mouseEvent) {
+                    JList theList = (JList) mouseEvent.getSource();
+                    if (mouseEvent.getClickCount() == 2) {
+                        int index = theList.locationToIndex(mouseEvent.getPoint());
+                        if (index >= 0) {
+                            Object o = theList.getModel().getElementAt(index);
+                            System.out.println("Double-clicked on: " + o.toString());
+                            try {
+                                manager.playSongByTitle(o.toString(),0);
+                            } catch (Exception ex) {System.out.println("List Click failed!");}
+                        }
+                    }                    
+                }});
+
 	//Add everything
 		panelBot.add(previousButton);
 		panelBot.add(playButton);
