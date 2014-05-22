@@ -137,13 +137,13 @@ public class GUI extends UI {
         nextButton.addMouseListener(new MouseAdapter(){
             @Override
             public void mousePressed(MouseEvent e){
-                nextButton.setIcon(new ImageIcon("pressedNext.png"))    
+                nextButton.setIcon(new ImageIcon("pressedNext.png"));    
                 //nextButton.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pressedNext.png")));
             }
             @Override
             public void mouseClicked(MouseEvent e){
                 try{
-                    nextButton.setIcon(new ImageIcon("next.png")) 
+                    nextButton.setIcon(new ImageIcon("next.png")); 
                     //nextButton.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("next.png")));
                     manager.next();
                 } catch(Exception b) {System.out.println("next failed");}
@@ -261,7 +261,7 @@ public class GUI extends UI {
                     try {
                         manager.playSongByTitle(title.toString(),0);
                         playButt = false;
-                        playButton.setICon(new ImageIcon("pause.png"));
+                        playButton.setIcon(new ImageIcon("pause.png"));
                         //playButton.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pause.png")));
                         target.clearSelection();
                     } catch (Exception ex) {System.out.println("List Click failed!");}
