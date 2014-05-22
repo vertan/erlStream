@@ -44,6 +44,7 @@ public class GUI extends UI {
     private JButton nextButton;
     private JButton previousButton;
     private JButton toggleShuffle;
+    private JButton toggleRepeat;
     private JTable songTable;
     private JSlider timeline;
     private JLabel songTime;
@@ -55,6 +56,7 @@ public class GUI extends UI {
     private boolean playButt = true;
     private boolean GUIchange = false;
     private boolean shuffelBool = true;
+    private boolean repeatBool = true;
 
 
 
@@ -213,6 +215,31 @@ public class GUI extends UI {
             }
         });
 
+        //toggleRepeat
+        toggleRepeat = new JButton(new ImageIcon("pressedRepeat.png"));
+        toggleRepeat.setBorder(null);
+        toggleRepeat.setOpaque(false);
+        toggleRepeat.setContentAreaFilled(false);
+        toggleRepeat.setBorderPainted(false);
+        toggleRepeat.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseClicked(MouseEvent e){
+                try{
+                    if(repeatBool){
+                        toggleRepeat.setIcon(new ImageIcon("repeatBlack.png"));
+                        //toggleRepeat.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pressedRepeat.png")));
+                        manager.setRepeat(!manager.repeatIsOn());
+                        repeatBool = false;
+                    } else {
+                        toggleRepeat.setIcon(new ImageIcon("pressedRepeat.png"));
+                        //toggleRepeat.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("repeat.png")));
+                        manager.setRepeat(!manager.repeatIsOn());
+                        repeatBool = true;
+                    }
+                } catch(Exception b) {System.out.println("next failed");}
+            }
+        });
+
         //playing Labels
         playing = new JLabel("Playing: ", SwingConstants.CENTER);
         //playing.setBorder(BorderFactory.createLineBorder(BLACK,1));
@@ -276,6 +303,7 @@ public class GUI extends UI {
 
 //Add everything
 
+        panelBot.add(toggleRepeat);
         panelBot.add(previousButton);
         panelBot.add(playButton);
         panelBot.add(nextButton);
