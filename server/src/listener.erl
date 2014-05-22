@@ -31,8 +31,10 @@ loop(Socket) ->
 	      end,
     case gen_tcp:recv(Socket,0) of
 	{ok, Data} ->
+	    {_Date, Time} = calendar:local_time(),
+	    {H, M, S} = Time,
 	    Message = string:strip(Data, both, $\n),
-	    io:format("Command received from ~s: ~s~n", [Address, Message]),
+	    io:format("[~2..0w:~2..0w:~2..0w] Command received from ~s: ~s~n", [H, M, S, Address, Message]),
 	    [Command|Arguments] = string:tokens(Message, " "),
 	    case Command of
 		"list" ->
