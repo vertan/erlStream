@@ -21,6 +21,10 @@ accept(ListenSocket) ->
     spawn(fun() -> loop(Socket) end),
     accept(ListenSocket).
 
+timestamp() ->
+    {_Date, {H, M, S}} = calendar:local_time(),
+    io_lib:format("[~2..0w:~2..0w:~2..0w]", [H, M, S]).
+
 %% Reads and acts upon requests from clients.
 loop(Socket) ->
     Address = case inet:peername(Socket) of
@@ -31,10 +35,8 @@ loop(Socket) ->
 	      end,
     case gen_tcp:recv(Socket,0) of
 	{ok, Data} ->
-	    {_Date, Time} = calendar:local_time(),
-	    {H, M, S} = Time,
 	    Message = string:strip(Data, both, $\n),
-	    io:format("[~2..0w:~2..0w:~2..0w] Command received from ~s: ~s~n", [H, M, S, Address, Message]),
+	    io:format("~s Command received from ~s: ~s~n", [timestamp(), Address, Message]),
 	    [Command|Arguments] = string:tokens(Message, " "),
 	    case Command of
 		"list" ->
@@ -44,7 +46,7 @@ loop(Socket) ->
 		    worker(Socket, {play, Arguments})
 	    end;
 	{error, closed} ->
-	    io:format("~s disconnected!~n", [Address]);
+	    io:format("~s ~s disconnected!~n", [timestamp(), Address]);
 	{error, Reason} ->
 	    io:format("Error: ~s~n", [Reason])
     end.

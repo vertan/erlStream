@@ -8,9 +8,11 @@
 -export([start/1, list/0, get_directory/0, exists/1, refresh/0, play/2, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("kernel/include/file.hrl").
+-include("song.hrl").
+
+-record(state, {directory, songs}).
 
 start(Directory) ->
     gen_server:start_link({local, database}, ?MODULE, Directory, []).
@@ -55,25 +57,26 @@ play(Filename, Offset) ->
 %%%%%%%%%%%%%%%%%%%%%%
 
 init(Directory) ->
+    process_flag(trap_exit, true), %% Is this needed?
     Songs = load(Directory),
-    {ok, {Directory, Songs}}.
+    {ok, #state{directory=Directory, songs=Songs}}.
 
-handle_call(list, _From, {Directory, Songs}) ->
-    {reply, Songs, {Directory, Songs}};
-handle_call(get_directory, _From, {Directory, Songs}) ->
-    {reply, Directory, {Directory, Songs}};
-handle_call({exists, Filename}, _From, {Directory, Songs}) ->
+handle_call(list, _From, State = #state{songs=Songs}) ->
+    {reply, Songs, State};
+handle_call(get_directory, _From, State = #state{directory=Directory}) ->
+    {reply, Directory, State};
+handle_call({exists, Filename}, _From, State = #state{songs=Songs}) ->
     Reply = case lists:filter(fun(Song) -> Song#song.filename =:= Filename end, Songs) of
 		[] ->
 		    false;
 		_ ->
 		    true
 	    end,
-    {reply, Reply, {Directory, Songs}}.
+    {reply, Reply, State}.
 
-handle_cast(refresh, {Directory, _Songs}) ->
+handle_cast(refresh, State = #state{directory=Directory}) ->
     UpdatedSongs = load(Directory),
-    {noreply, {Directory, UpdatedSongs}};
+    {noreply, State#state{songs=UpdatedSongs}};
 handle_cast(terminate, State) ->
     {stop, normal, State}.
 
@@ -81,8 +84,8 @@ handle_info(Info, State) ->
     io:format("Database: Unexpected message: ~p~n", [Info]),
     {noreply, State}.
 
-terminate(normal, {_Directory, Songs}) ->
-    io:format("~p items lost!~n", [length(Songs)]).
+terminate(normal, _State) ->
+    ok.
 
 code_change(_OldVersion, State, _Extra) ->
     {ok, State}.
