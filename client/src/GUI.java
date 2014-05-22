@@ -1,3 +1,5 @@
+import java.util.List;
+import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
@@ -11,7 +13,7 @@ public class GUI extends UI {
             @Override
             public void run(){
                     while(true){
-                            updateTimeline();
+                            updateAll();
                             GUIchange = false;
                             try{
                                     Thread.sleep(500);
@@ -46,8 +48,10 @@ public class GUI extends UI {
     private JSlider timeline;
     private JLabel songTime;
     private JLabel curentTime;
+    private JLabel playing;
+    private JLabel currentSong;
     Object[][] data;
-
+    private List<Song> songList;
     private boolean playButt = true;
     private boolean GUIchange = false;
     private boolean shuffelBool = true;
@@ -55,9 +59,9 @@ public class GUI extends UI {
 
 
     public GUI(){
-            try{
-                    manager = new AudioManager("bitninja.se",1340);
-            } catch(Exception e){System.out.println("AudioManager failed!!!");};
+        try{
+            manager = new AudioManager("bitninja.se",1340);
+        } catch(Exception e){System.out.println("AudioManager failed!!!");};
     }
 
     @Override
@@ -85,6 +89,12 @@ public class GUI extends UI {
         JPanel timelinePanel = new JPanel();
         ((FlowLayout)timelinePanel.getLayout()).setVgap(0);
         ((FlowLayout)timelinePanel.getLayout()).setHgap(0);
+
+        JPanel nowPlaying = new JPanel();
+        ((FlowLayout)nowPlaying.getLayout()).setVgap(0);
+        ((FlowLayout)nowPlaying.getLayout()).setHgap(0);
+
+
 
         Thread update = new Thread(new Update());
         update.start();
@@ -126,6 +136,7 @@ public class GUI extends UI {
 
         //Slider
         timeline = new JSlider(JSlider.HORIZONTAL,0,100,0);
+        timeline.setPreferredSize(new Dimension(450,20));
         timeline.addChangeListener(new SlideListener());
 
         nextButton = new JButton (new ImageIcon("next.png"));
@@ -163,8 +174,8 @@ public class GUI extends UI {
         previousButton.addMouseListener(new MouseAdapter(){
             @Override
             public void mousePressed(MouseEvent e){
-                previousButton.setIcon(new ImageIcon("pressedprevious.png"));
-                //previousButton.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pressedprevious.png")));
+                previousButton.setIcon(new ImageIcon("pressedPrevious.png"));
+                //previousButton.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pressedPrevious.png")));
             }
             @Override
             public void mouseClicked(MouseEvent e){
@@ -177,34 +188,24 @@ public class GUI extends UI {
         });
 
         //toggleShuffle
-        toggleShuffle = new JButton(new ImageIcon("shufflelila.png"));
-        //toggleShuffle = new JButton (new ImageIcon(this.getClass().getClassLoader().getResource("shufflelila.png")));
+        toggleShuffle = new JButton(new ImageIcon("shuffleSvart.png"));
+        //toggleShuffle = new JButton (new ImageIcon(this.getClass().getClassLoader().getResource("shuffleLila.png")));
         toggleShuffle.setBorder(null);
         toggleShuffle.setOpaque(false);
         toggleShuffle.setContentAreaFilled(false);
         toggleShuffle.setBorderPainted(false);
         toggleShuffle.addMouseListener(new MouseAdapter(){
             @Override
-            public void mousePressed(MouseEvent e){
-                if(shuffelBool){
-                    toggleShuffle.setIcon(new ImageIcon("pressedshufflelila.png"));
-                    //toggleShuffle.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pressedshufflelila.png")));
-                } else {
-                    toggleShuffle.setIcon(new ImageIcon("pressedshufflesvart.png"));
-                    //toggleShuffle.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pressedshufflesvart.png.png")));
-                }
-            }
-            @Override
             public void mouseClicked(MouseEvent e){
                 try{
                     if(shuffelBool){
-                        toggleShuffle.setIcon(new ImageIcon("shufflesvart.png"));
-                        //toggleShuffle.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("shufflesvart.png")));
+                        toggleShuffle.setIcon(new ImageIcon("shuffleLila.png"));
+                        //toggleShuffle.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("shuffleSvart.png")));
                         manager.setShuffle(!manager.shuffleIsOn());
                         shuffelBool = false;
                     } else {
-                        toggleShuffle.setIcon(new ImageIcon("shufflelila.png"));
-                        //toggleShuffle.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("shufflelila.png")));
+                        toggleShuffle.setIcon(new ImageIcon("shuffleSvart.png"));
+                        //toggleShuffle.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("shuffleLila.png")));
                         manager.setShuffle(!manager.shuffleIsOn());
                         shuffelBool = true;
                     }
@@ -212,19 +213,23 @@ public class GUI extends UI {
             }
         });
 
-
+        //playing Labels
+        playing = new JLabel("Playing: ", SwingConstants.CENTER);
+        //playing.setBorder(BorderFactory.createLineBorder(BLACK,1));
+        currentSong = new JLabel("");
 
        //songList
         try {
-            data = new Object[3][manager.getSongs().size()];
+            songList = manager.getSongs();
+            data = new Object[3][songList.size()];
         } catch (Exception ex) {}
 
         try {
-            for(int i = 0; i < manager.getSongs().size() ; i++){
-                String title = manager.getSongs().get(i).getTitle();
-                String artist = manager.getSongs().get(i).getArtist();
-                String album = manager.getSongs().get(i).getAlbum();
-                String duration = manager.getSongs().get(i).getDurationString();
+            for(int i = 0; i < songList.size() ; i++){
+                String title = songList.get(i).getTitle();
+                String artist = songList.get(i).getArtist();
+                String album = songList.get(i).getAlbum();
+                String duration = songList.get(i).getDurationString();
                 Object[] listElement = {title,artist,album,duration};
                 data[i] = listElement;
             }
@@ -280,6 +285,9 @@ public class GUI extends UI {
         timelinePanel.add(timeline);
         timelinePanel.add(songTime);
 
+        nowPlaying.add(playing);
+        nowPlaying.add(currentSong);
+
         JScrollPane scrollPane = new JScrollPane(songTable);
         songTable.setFillsViewportHeight(true);
         scrollPane.setPreferredSize(new Dimension(songTable.getPreferredSize().width,400));    
@@ -287,6 +295,7 @@ public class GUI extends UI {
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
         panelTop.add(scrollPane,BorderLayout.CENTER);
+        panelTop.add(nowPlaying);
         panelTop.add(timelinePanel);    
         panelTop.setPreferredSize(new Dimension(530,450));
 
@@ -302,13 +311,16 @@ public class GUI extends UI {
 
 	}
 
-	public void updateTimeline(){
+	public void updateAll(){
             try{
                 GUIchange = true; 
                 timeline.setValue(manager.getPosition());
                 curentTime.setText(Song.secondsToString(manager.getPosition()));
                 songTime.setText(manager.getCurrentSong().getDurationString());
                 timeline.setMaximum(manager.getCurrentSong().getDuration());
+
+               currentSong.setText(manager.getCurrentSong().toString());
+
             }catch(Exception c) {}
 	}
 }
