@@ -3,26 +3,26 @@
 %%% Description: Handles communication with clients
 
 -module(listener).
--export([start/2, stop/1]).
+-export([start/1, stop/1]).
 -include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -define(TCP_OPTIONS, [{packet, line}, {active, false}, {reuseaddr, true}]).
 
 %% Starts the listener.
-start(Database, Port) ->
+start(Port) ->
     %% TODO: Take care of other return types.
     {ok,ListenSocket} = gen_tcp:listen(Port, ?TCP_OPTIONS),
-    accept(Database, ListenSocket).
+    accept(ListenSocket).
 
 %% Waits for clients to connect.
-accept(Database, ListenSocket) ->
+accept(ListenSocket) ->
     {ok,Socket} = gen_tcp:accept(ListenSocket),
-    spawn(fun() -> loop(Database, Socket) end),
-    accept(Database, ListenSocket).
+    spawn(fun() -> loop(Socket) end),
+    accept(ListenSocket).
 
 %% Reads and acts upon requests from clients.
-loop(Database, Socket) ->
+loop(Socket) ->
     Address = case inet:peername(Socket) of
 		  {ok, {Addr, _Port}} ->
 		      inet_parse:ntoa(Addr);
@@ -30,16 +30,16 @@ loop(Database, Socket) ->
 		      "Unknown"
 	      end,
     case gen_tcp:recv(Socket,0) of
-	{ok,Data} ->
+	{ok, Data} ->
 	    Message = string:strip(Data, both, $\n),
 	    io:format("Command received from ~s: ~s~n", [Address, Message]),
 	    [Command|Arguments] = string:tokens(Message, " "),
 	    case Command of
 		"list" ->
-		    worker(Database, Socket, list),
-		    loop(Database, Socket);
+		    worker(Socket, list),
+		    loop(Socket);
 		"play" ->
-		    worker(Database, Socket, {play, Arguments})
+		    worker(Socket, {play, Arguments})
 	    end;
 	{error, closed} ->
 	    io:format("~s disconnected!~n", [Address]);
@@ -62,15 +62,18 @@ send_song(Socket, Data) ->
     gen_tcp:close(Socket).
 
 %% Does the given task and sends the data back through the socket.
-worker(Database, Socket, Command) ->
+worker(Socket, Command) ->
     case Command of
 	list ->
-	    Songs = database:list(Database),
+	    Songs = database:list(),
 	    SongTitles = [[Song#song.filename, "|", Song#song.title, "|", Song#song.artist, "|", Song#song.album, "|", integer_to_list(Song#song.duration), "\n"] || Song <- Songs],
 	    SongTitlesApp = lists:append(SongTitles),
 	    send_data(Socket, SongTitlesApp ++ "end\n");
 	{play, Arguments} ->
-	    case database:play(Database, Arguments) of
+	    [Offset|File] = Arguments,
+	    Filename = string:join(File, " "),
+	    {StartMS, _StartRest} = string:to_integer(Offset),
+	    case database:play(Filename, StartMS) of
 		{ok, Data} ->
 		    send_song(Socket, Data);
 		{error, Reason} ->

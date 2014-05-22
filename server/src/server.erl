@@ -18,15 +18,15 @@ start() ->
     process_flag(trap_exit, true),
 
     io:format("Starting database... "),
-    Database = spawn_link(database, start, []),
-    io:format("~w songs loaded!~n", [length(database:list(Database))]),
+    database:start("../files"),
+    io:format("~w songs loaded!~n", [length(database:list())]),
 
     Port = 1340,
     io:format("Starting listener... "),
-    Listener = spawn_link(listener, start, [Database, Port]),
+    Listener = spawn_link(listener, start, [Port]),
     io:format("ok!~n"),
 
-    Server = spawn_link(fun() -> loop({Listener, Database}) end),
+    Server = spawn_link(fun() -> loop(Listener) end),
     io:format("Server started!~n"),
     Server.
 
@@ -48,15 +48,15 @@ start_cli() ->
 %%<div class="example">'''
 %%'''
 %%</div>
-loop({Listener, Database}) ->
+loop(Listener) ->
     receive
 	{Pid, list} ->
-	    Pid ! database:list(Database),
-	    loop({Listener, Database});
+	    Pid ! database:list(),
+	    loop(Listener);
 	{Pid, refresh} ->
-	    database:refresh(Database),
-	    Pid ! database:list(Database),
-	    loop({Listener, Database});
+	    database:refresh(),
+	    Pid ! database:list(),
+	    loop(Listener);
 	{Pid, stop} ->
 	    listener:stop(Listener),
 	    %% receive

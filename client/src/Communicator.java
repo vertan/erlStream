@@ -31,14 +31,6 @@ public class Communicator {
     }
 
     /*
-     * Returns filename without it's extension.
-     */
-    private String getBaseName(String filename) {
-	String[] splitname = filename.split("\\.(?=[^\\.]+$)");
-	return splitname[0];
-    }
-
-    /*
      * Initializes the variables inSocket, outSocket, toServer and fromServer.
      */
     private void initConnection() throws Exception {
@@ -83,7 +75,7 @@ public class Communicator {
 	    String artist = split[2];
 	    String album = split[3];
 	    int duration = Integer.parseInt(split[4]);
-	    songs.add(new Song(getBaseName(name), title, album, artist, duration));
+	    songs.add(new Song(name, title, album, artist, duration));
 	}
 
 	return songs;
@@ -101,7 +93,7 @@ public class Communicator {
 	Socket tempSocket = new Socket(address, port);
 	DataOutputStream out = new DataOutputStream(tempSocket.getOutputStream());
 
-	out.writeBytes("play " + offset + " " + song.getFileName() + ".mp3\n");
+	out.writeBytes("play " + offset + " " + song.getFileName() + "\n");
     
 	return tempSocket.getInputStream();
     }
