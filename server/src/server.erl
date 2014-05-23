@@ -2,9 +2,15 @@
 %% @doc Main code which handles requests
 
 -module(server).
--export([start/0, start_cli/0, list/1, refresh/1, stop/1]).
--include("song.hrl").
+-behavior(gen_server).
+
+-export([start/0, start_cli/0, list/0, refresh/0, stop/0]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+
 -include_lib("eunit/include/eunit.hrl").
+-include("song.hrl").
+
+-record(state, {listener}).
 
 %% @doc Initializes and starts actors for server.
 %%
@@ -12,9 +18,69 @@
 %%<div class="example">'''
 %%'''
 %%</div>
--spec start() -> pid().
+-spec start() -> {ok, pid()}.
 
 start() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+%% @doc Starts the server along with a command line interface.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
+-spec start_cli() -> ok.
+
+start_cli() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []),
+    cli_start().
+
+%% @doc Returns a string with the filenames of the available songs on the server.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
+-spec list() -> ok.
+
+list() ->
+    Songs = gen_server:call(server, list),
+    io:format("~p songs:~n~n", [length(Songs)]),
+    [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
+    io:format("~n").
+
+%% @doc Reloads the server's database.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
+-spec refresh() -> ok.
+
+refresh() ->
+    io:format("Loading songs into database... "),
+    Songs = gen_server:call(server, refresh),
+    io:format("~p songs loaded!~n", [length(Songs)]).
+
+%% @doc Stops the server.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
+-spec stop() -> ok.
+ 
+stop() ->
+    io:format("Stopping server... "),
+    gen_server:cast(server, stop),
+    io:format("server stopped.~n").
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%% Server functions %%
+%%%%%%%%%%%%%%%%%%%%%%
+
+init([]) ->
     process_flag(trap_exit, true),
 
     io:format("Starting database... "),
@@ -26,100 +92,33 @@ start() ->
     Listener = spawn_link(listener, start, [Port]),
     io:format("ok!~n"),
 
-    Server = spawn_link(fun() -> loop(Listener) end),
     io:format("Server started!~n"),
-    Server.
+    {ok, #state{listener=Listener}}.
 
-%% @doc Starts the server along with a command line interface.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
--spec start_cli() -> ok.
+handle_call(list, _From, State) ->
+    Songs = database:list(),
+    {reply, Songs, State};
+handle_call(refresh, _From, State) ->
+    database:refresh(),
+    Songs = database:list(),
+    {reply, Songs, State}.
 
-start_cli() ->
-    Server = start(),
-    cli_start(Server).
+handle_cast(stop, State) ->
+    {stop, normal, State}.
 
-%% @doc Handles requests
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
-loop(Listener) ->
-    receive
-	{Pid, list} ->
-	    Pid ! database:list(),
-	    loop(Listener);
-	{Pid, refresh} ->
-	    database:refresh(),
-	    Pid ! database:list(),
-	    loop(Listener);
-	{Pid, stop} ->
-	    listener:stop(Listener),
-	    %% receive
-	    %% 	{'EXIT', Listener, normal} ->
-	    %% 	    io:format("listener exited.~n")
-	    %% after 5000 ->
-	    %% 	    erlang:error(timeout)
-	    %% end,
-	    %% database:stop(Database),
-	    Pid ! ok
-    end.
+handle_info(Info, State) ->
+    io:format("Server: Unexpected message: ~p~n", [Info]),
+    {noreply, State}.
 
-%% @doc Returns a string with the filenames of the available songs on the server.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
--spec list(Server) -> ok when
-      Server :: pid().
+terminate(normal, _State) ->
+    ok;
+terminate(shutdown, _State) ->
+    ok;
+terminate(_Reason, _State) ->
+    ok.
 
-list(Server) ->
-    Server ! {self(), list},
-    receive
-	Songs ->
-	    io:format("~p songs:~n~n", [length(Songs)]),
-	    [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
-	    io:format("~n")
-    end.
-
-%% @doc Reloads the servers database.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
--spec refresh(Server) -> ok when
-      Server :: pid().
-
-refresh(Server) ->
-    Server ! {self(), refresh},
-    io:format("Loading songs into database... "),
-    receive
-	Songs ->
-	    io:format("~p songs loaded!~n", [length(Songs)])
-    end.
-
-%% @doc Stops the server.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
--spec stop(Server) -> ok when
-      Server :: pid().
- 
-stop(Server) ->
-    Server ! {self(), stop},
-    io:format("Stopping server... "),
-    receive
-	ok ->
-	    io:format("server stopped.~n")
-    end.
+code_change(_OldVersion, State, _Extra) ->
+    {ok, State}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -132,16 +131,15 @@ stop(Server) ->
 %%<div class="example">'''
 %%'''
 %%</div>
--spec cli_start(Server) -> ok when
-      Server :: pid().
+-spec cli_start() -> ok.
 
-cli_start(Server) ->
+cli_start() ->
     io:format("~n"),
     io:format("##########################~n"),
     io:format("# Welcome to the server! #~n"),
     io:format("##########################~n"),    
     print_help(),
-    cli(Server).
+    cli().
 
 %% @doc Prints the available commands.
 %%
@@ -167,27 +165,26 @@ print_help() ->
 %%<div class="example">'''
 %%'''
 %%</div>
--spec cli(Server) -> ok when
-      Server :: pid().
+-spec cli() -> ok.
  
-cli(Server) ->
+cli() ->
     case io:get_line("> ") of
 	"ls\n" ->
-	    list(Server),
-	    cli(Server);
+	    list(),
+	    cli();
 	"refresh\n" ->
-	    refresh(Server),
-	    cli(Server);
+	    refresh(),
+	    cli();
 	"help\n" ->
 	    print_help(),
-	    cli(Server);
+	    cli();
 	"stop\n" ->
-	    stop(Server);
+	    stop();
 	"\n" ->
-	    cli(Server);
+	    cli();
 	_ ->
 	    io:format("Unkown command. Type 'help' to see available options.~n"),
-	    cli(Server)
+	    cli()
     end.
 
 
