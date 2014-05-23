@@ -15,7 +15,7 @@
 -record(state, {directory, songs}).
 
 start(Directory) ->
-    gen_server:start_link({local, database}, ?MODULE, Directory, []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, Directory, []).
 
 list() ->
     gen_server:call(database, list).
