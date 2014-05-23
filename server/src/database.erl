@@ -30,7 +30,7 @@ refresh() ->
     gen_server:cast(database, refresh).
 
 stop() ->
-    gen_server:cast(database, terminate).
+    gen_server:cast(database, stop).
 
 %% Not executed by the atual server, for performance reasons.
 play(Filename, Offset) ->
@@ -77,7 +77,7 @@ handle_call({exists, Filename}, _From, State = #state{songs=Songs}) ->
 handle_cast(refresh, State = #state{directory=Directory}) ->
     UpdatedSongs = load(Directory),
     {noreply, State#state{songs=UpdatedSongs}};
-handle_cast(terminate, State) ->
+handle_cast(stop, State) ->
     {stop, normal, State}.
 
 handle_info(Info, State) ->
@@ -85,6 +85,10 @@ handle_info(Info, State) ->
     {noreply, State}.
 
 terminate(normal, _State) ->
+    ok;
+terminate(shutdown, _State) ->
+    ok;
+terminate(_Reason, _State) ->
     ok.
 
 code_change(_OldVersion, State, _Extra) ->
