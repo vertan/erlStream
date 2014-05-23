@@ -87,11 +87,11 @@ worker(Socket, Command) ->
     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%			   EUnit Test Cases                                  %%
+%%                             EUnit Test Cases                              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% All functions with names ending with _test() or _test_() will be
-%% called automatically by add:test()
+%% called automatically by listener:test()
 
 start_test() ->
     tbi.

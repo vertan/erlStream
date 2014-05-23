@@ -12,6 +12,10 @@
 
 -record(state, {listener}).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                    API                                    %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% @doc Initializes and starts actors for server.
 %%
 %% === Example ===
@@ -76,9 +80,9 @@ stop() ->
     io:format("server stopped.~n").
 
 
-%%%%%%%%%%%%%%%%%%%%%%
-%% Server functions %%
-%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                             Server functions                              %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 init([]) ->
     process_flag(trap_exit, true),
@@ -189,11 +193,11 @@ cli() ->
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%			   EUnit Test Cases                                  %%
+%%                             EUnit Test Cases                              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% All functions with names ending with _test() or _test_() will be
-%% called automatically by add:test()
+%% called automatically by server:test()
 
 list_test() ->
     tbi.

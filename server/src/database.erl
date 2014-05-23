@@ -14,6 +14,10 @@
 
 -record(state, {directory, songs}).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                    API                                    %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 start(Directory) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Directory, []).
 
@@ -52,9 +56,9 @@ play(Filename, Offset) ->
     end.
 
 
-%%%%%%%%%%%%%%%%%%%%%%
-%% Server functions %%
-%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                             Server functions                              %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 init(Directory) ->
     process_flag(trap_exit, true), %% Is this needed?
@@ -95,9 +99,9 @@ code_change(_OldVersion, State, _Extra) ->
     {ok, State}.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%
-%% Internal functions %%
-%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                            Internal functions                             %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load(Directory) ->
     FilesString = os:cmd("ls " ++ Directory ++ "/ | egrep '.*.mp3'"),
@@ -149,3 +153,14 @@ get_duration(FilePath) ->
 	{error, _Reason} ->
 	    0
     end.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                             EUnit Test Cases                              %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% All functions with names ending with _test() or _test_() will be
+%% called automatically by database:test()
+
+list_test() ->
+    tbi.
