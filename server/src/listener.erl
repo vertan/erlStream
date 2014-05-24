@@ -8,8 +8,8 @@
 -export([start/1, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
+-include("song.hrl").
 
 -record(state, {port, listensocket=null}).
 
@@ -76,6 +76,7 @@ spawn_accept(State = #state{listensocket=ListenSocket}) ->
 accept(ListenSocket) ->
     {ok, Socket} = gen_tcp:accept(ListenSocket),
     gen_server:cast(?MODULE, {accepted, self()}),
+    client_manager:connect(Socket),
     loop(Socket).
 
 %% Reads and acts upon requests from clients.
@@ -99,7 +100,7 @@ loop(Socket) ->
 		    worker(Socket, {play, Arguments})
 	    end;
 	{error, closed} ->
-	    io:format("~s ~s disconnected!~n", [timestamp(), Address]);
+	    client_manager:disconnect(Socket);
 	{error, Reason} ->
 	    io:format("Error: ~s~n", [Reason])
     end.
@@ -111,6 +112,7 @@ send_data(Socket, Data) ->
 %% Sends a song and closes the socket.
 send_song(Socket, Data) ->
     gen_tcp:send(Socket, Data),
+    client_manager:disconnect(Socket),
     gen_tcp:close(Socket).
 
 %% Does the given task and sends the data back through the socket.

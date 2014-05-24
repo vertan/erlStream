@@ -9,6 +9,7 @@
 
 -include_lib("eunit/include/eunit.hrl").
 -include("song.hrl").
+-include("client.hrl").
 
 -record(state, {}).
 
@@ -39,6 +40,17 @@ start_cli() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []),
     cli_start().
 
+%% Prints a list of the connected clients.
+clients() ->
+    case gen_server:call(?MODULE, clients) of
+	[] ->
+	    io:format("No clients connected.~n");
+	Clients ->
+	    io:format("~p client(s):~n~n", [length(Clients)]),
+	    [io:format("~s (~s)~n", [Client#client.address, Client#client.name]) || Client <- Clients],
+	    io:format("~n")
+    end.
+
 %% @doc Returns a string with the filenames of the available songs on the server.
 %%
 %% === Example ===
@@ -49,7 +61,7 @@ start_cli() ->
 
 list() ->
     Songs = gen_server:call(?MODULE, list),
-    io:format("~p songs:~n~n", [length(Songs)]),
+    io:format("~p song(s):~n~n", [length(Songs)]),
     [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
     io:format("~n").
 
@@ -87,11 +99,16 @@ stop() ->
 init([]) ->
     process_flag(trap_exit, true),
 
+    Port = 1340,
+
     io:format("Starting database... "),
     database:start("../files"),
     io:format("~w songs loaded!~n", [length(database:list())]),
 
-    Port = 1340,
+    io:format("Starting client manager... "),
+    client_manager:start(),
+    io:format("ok!~n"),
+
     io:format("Starting listener... "),
     listener:start(Port),
     io:format("ok!~n"),
@@ -99,6 +116,9 @@ init([]) ->
     io:format("Server started!~n"),
     {ok, #state{}}.
 
+handle_call(clients, _From, State) ->
+    Clients = client_manager:list(),
+    {reply, Clients, State};
 handle_call(list, _From, State) ->
     Songs = database:list(),
     {reply, Songs, State};
@@ -157,6 +177,7 @@ print_help() ->
     io:format("~n"),
     io:format("Available commands~n"),
     io:format("------------------~n"),
+    io:format("clients \tList connected clients~n"),
     io:format("ls \t\tList available songs~n"),
     io:format("refresh \tLoad files to database~n"),
     io:format("help \t\tShow this dialog~n"),
@@ -173,6 +194,9 @@ print_help() ->
  
 cli() ->
     case io:get_line("> ") of
+	"clients\n" ->
+	    clients(),
+	    cli();
 	"ls\n" ->
 	    list(),
 	    cli();
