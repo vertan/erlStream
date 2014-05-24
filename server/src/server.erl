@@ -10,7 +10,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -include("song.hrl").
 
--record(state, {listener}).
+-record(state, {}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                    API                                    %%
@@ -48,7 +48,7 @@ start_cli() ->
 -spec list() -> ok.
 
 list() ->
-    Songs = gen_server:call(server, list),
+    Songs = gen_server:call(?MODULE, list),
     io:format("~p songs:~n~n", [length(Songs)]),
     [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
     io:format("~n").
@@ -63,7 +63,7 @@ list() ->
 
 refresh() ->
     io:format("Loading songs into database... "),
-    Songs = gen_server:call(server, refresh),
+    Songs = gen_server:call(?MODULE, refresh),
     io:format("~p songs loaded!~n", [length(Songs)]).
 
 %% @doc Stops the server.
@@ -76,7 +76,7 @@ refresh() ->
  
 stop() ->
     io:format("Stopping server... "),
-    gen_server:cast(server, stop),
+    gen_server:cast(?MODULE, stop),
     io:format("server stopped.~n").
 
 
@@ -93,11 +93,11 @@ init([]) ->
 
     Port = 1340,
     io:format("Starting listener... "),
-    Listener = spawn_link(listener, start, [Port]),
+    listener:start(Port),
     io:format("ok!~n"),
 
     io:format("Server started!~n"),
-    {ok, #state{listener=Listener}}.
+    {ok, #state{}}.
 
 handle_call(list, _From, State) ->
     Songs = database:list(),

@@ -3,27 +3,80 @@
 %%% Description: Handles communication with clients
 
 -module(listener).
--export([start/1, stop/1]).
+-behavior(gen_server).
+
+-export([start/1, stop/0]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+
 -include("song.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+-record(state, {port, listensocket=null}).
+
 -define(TCP_OPTIONS, [{packet, line}, {active, false}, {reuseaddr, true}]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                    API                                    %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Starts the listener.
 start(Port) ->
-    %% TODO: Take care of other return types.
-    {ok,ListenSocket} = gen_tcp:listen(Port, ?TCP_OPTIONS),
-    accept(ListenSocket).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, Port, []).
 
-%% Waits for clients to connect.
+%% Stops the listener.
+stop() ->
+    gen_server:cast(?MODULE, stop).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                             Server functions                              %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+init(Port) ->
+    process_flag(trap_exit, true),
+    State = #state{port=Port},
+    case gen_tcp:listen(Port, ?TCP_OPTIONS) of
+	{ok, ListenSocket} ->
+	    {ok, spawn_accept(State#state{listensocket=ListenSocket})};
+	{error, Reason} ->
+	    {stop, Reason}
+    end.
+
+handle_cast({accepted, _Pid}, State) ->
+    {noreply, spawn_accept(State)};
+handle_cast(stop, State) ->
+    {stop, normal, State}.
+
+handle_call(_Message, _From, State) ->
+    {noreply, State}.
+
+handle_info(Info, State) ->
+    io:format("Listener: Unexpected message: ~p~n", [Info]),
+    {noreply, State}.
+
+terminate(normal, _State) ->
+    ok;
+terminate(shutdown, _State) ->
+    ok;
+terminate(_Reason, _State) ->
+    ok.
+
+code_change(_OldVersion, State, _Extra) ->
+    {ok, State}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                            Internal functions                             %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+spawn_accept(State = #state{listensocket=ListenSocket}) ->
+    proc_lib:spawn(fun() -> accept(ListenSocket) end),
+    State.
+
 accept(ListenSocket) ->
-    {ok,Socket} = gen_tcp:accept(ListenSocket),
-    spawn(fun() -> loop(Socket) end),
-    accept(ListenSocket).
-
-timestamp() ->
-    {_Date, {H, M, S}} = calendar:local_time(),
-    io_lib:format("[~2..0w:~2..0w:~2..0w]", [H, M, S]).
+    {ok, Socket} = gen_tcp:accept(ListenSocket),
+    gen_server:cast(?MODULE, {accepted, self()}),
+    loop(Socket).
 
 %% Reads and acts upon requests from clients.
 loop(Socket) ->
@@ -50,11 +103,6 @@ loop(Socket) ->
 	{error, Reason} ->
 	    io:format("Error: ~s~n", [Reason])
     end.
-
-%% Stops the listener.
-stop(Listener) ->
-    %% [exit(Worker, shutdown) || Worker <- Workers],
-    exit(Listener, shutdown).
 
 %% Sends data.
 send_data(Socket, Data) ->
@@ -85,6 +133,10 @@ worker(Socket, Command) ->
 	    end
     end.
     
+timestamp() ->
+    {_Date, {H, M, S}} = calendar:local_time(),
+    io_lib:format("[~2..0w:~2..0w:~2..0w]", [H, M, S]).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                             EUnit Test Cases                              %%
