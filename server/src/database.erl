@@ -22,19 +22,19 @@ start(Directory) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Directory, []).
 
 list() ->
-    gen_server:call(database, list).
+    gen_server:call(?MODULE, list).
 
 get_directory() ->
-    gen_server:call(database, get_directory).
+    gen_server:call(?MODULE, get_directory).
 
 exists(Filename) ->
-    gen_server:call(database, {exists, Filename}).
+    gen_server:call(?MODULE, {exists, Filename}).
 
 refresh() ->
-    gen_server:cast(database, refresh).
+    gen_server:cast(?MODULE, refresh).
 
 stop() ->
-    gen_server:cast(database, stop).
+    gen_server:cast(?MODULE, stop).
 
 %% Not executed by the atual server, for performance reasons.
 play(Filename, Offset) ->
