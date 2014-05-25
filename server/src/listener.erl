@@ -81,16 +81,11 @@ accept(ListenSocket) ->
 
 %% Reads and acts upon requests from clients.
 loop(Socket) ->
-    Address = case inet:peername(Socket) of
-		  {ok, {Addr, _Port}} ->
-		      inet_parse:ntoa(Addr);
-		  {error, _} ->
-		      "Unknown"
-	      end,
+    Address = utils:socket_to_address(Socket),
     case gen_tcp:recv(Socket,0) of
 	{ok, Data} ->
 	    Message = string:strip(Data, both, $\n),
-	    io:format("~s Command received from ~s: ~s~n", [timestamp(), Address, Message]),
+	    io:format("~s Command received from ~s: ~s~n", [utils:timestamp(), Address, Message]),
 	    [Command|Arguments] = string:tokens(Message, " "),
 	    case Command of
 		"list" ->
@@ -135,10 +130,6 @@ worker(Socket, Command) ->
 	    end
     end.
     
-timestamp() ->
-    {_Date, {H, M, S}} = calendar:local_time(),
-    io_lib:format("[~2..0w:~2..0w:~2..0w]", [H, M, S]).
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                             EUnit Test Cases                              %%
