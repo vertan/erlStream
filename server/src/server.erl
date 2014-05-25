@@ -4,7 +4,7 @@
 -module(server).
 -behavior(gen_server).
 
--export([start/0, start_cli/0, list/0, stop/0]).
+-export([start/0, start_cli/0, clients/0, list/0, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -include_lib("eunit/include/eunit.hrl").
