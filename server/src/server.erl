@@ -116,6 +116,7 @@ handle_call(refresh, _From, State) ->
     {reply, Songs, State}.
 
 handle_cast(stop, State) ->
+    client_manager:broadcast("exit:Shutdown"),
     {stop, normal, State}.
 
 handle_info(Info, State) ->

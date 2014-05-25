@@ -77,6 +77,10 @@ handle_call({exists, Filename}, _From, State = #state{songs=Songs}) ->
     {reply, Reply, State}.
 
 handle_cast({update, UpdatedSongs}, State) ->
+    SongTitles = [Song#song.filename ++ ":" ++ Song#song.title ++ ":" ++ Song#song.artist ++ ":"
+		  ++ Song#song.album ++ ":" ++ integer_to_list(Song#song.duration) ++ "\n" || Song <- UpdatedSongs],
+    SongTitlesApp = lists:append(SongTitles),
+    client_manager:broadcast("update:\n" ++ SongTitlesApp ++ "end"),
     {noreply, State#state{songs=UpdatedSongs}};
 handle_cast(stop, State) ->
     {stop, normal, State}.

@@ -182,17 +182,19 @@ public class CLI extends UI {
 
 	System.out.print("Connecting... ");
 
+	boolean connectionSucceeded = false;
+
 	try {
 	    AudioManager test = new AudioManager(address, port);
 	    if (player != null) player.stop();
 	    player = test;
-	    connected = true;
+	    connectionSucceeded = true;
 	    System.out.println("connected!");
 	} catch (Throwable e) {
 	    System.out.println("failed!");
 	}
 
-	return connected;
+	return connectionSucceeded;
     }
 
     /*
@@ -204,7 +206,7 @@ public class CLI extends UI {
 	System.out.println("");
 	System.out.println("Available commands");
 	System.out.println("------------------");
-	if (connected) {
+	if (player != null && player.isConnected()) {
 	    System.out.printf(format, "ls", "List available songs");
 	    System.out.printf(format, "play <Title>", "Play song");
 	    System.out.printf(format, "playat <time> <Title>", "Play song at the given time (seconds)");
@@ -228,7 +230,7 @@ public class CLI extends UI {
      * Prints server information.
      */
     private void serverinfo() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -243,7 +245,7 @@ public class CLI extends UI {
      * Stops the playback and turns the quitPending flag on.
      */
     private void quit() {
-	if (player != null) player.stop();
+	if (player != null) player.close();
 	quitPending = true;	
     }
 
@@ -297,7 +299,7 @@ public class CLI extends UI {
      * Prints a list with the available songs.
      */
     private void list() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -309,7 +311,7 @@ public class CLI extends UI {
      * Plays a song.
      */
     private void play(List<String> arguments, int offset) {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -351,7 +353,7 @@ public class CLI extends UI {
      * Plays a song with an offset.
      */
     private void playat(List<String> arguments) {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -377,7 +379,7 @@ public class CLI extends UI {
      * Pauses the current song.
      */
     private void pause() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -394,7 +396,7 @@ public class CLI extends UI {
      * Stops the current song.
      */
     private void stop() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -411,7 +413,7 @@ public class CLI extends UI {
      * Prints status information.
      */
     private void status() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -444,7 +446,7 @@ public class CLI extends UI {
      * Plays the next song.
      */
     private void next() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -472,7 +474,7 @@ public class CLI extends UI {
      * Plays the next song.
      */
     private void previous() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -494,7 +496,7 @@ public class CLI extends UI {
      * Toggles shuffle mode.
      */
     private void shuffle() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -507,7 +509,7 @@ public class CLI extends UI {
      * Toggles repeat mode.
      */
     private void repeat() {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}
@@ -520,7 +522,7 @@ public class CLI extends UI {
      * Sorts the songs and prints the list.
      */
     private void sort(List<String> arguments) {
-	if (!connected) {
+	if (player == null || !player.isConnected()) {
 	    printConnectionMessage();
 	    return;
 	}

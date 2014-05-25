@@ -10,6 +10,49 @@ import java.net.*;
  * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
  */
 public class Communicator {
+    // This thread runs in the background and reads messages from the server.
+    private class ListenThread implements Runnable {
+	private volatile boolean running = true;
+
+	public void run() {
+	    while(running) {
+		try {
+		    String data = fromServer.readLine();
+
+		    if (data == null) {
+			connected = false;
+			System.out.println("Lost connection to server! Network error.");
+			return;
+		    }
+
+		    // Parse messages from server
+		    List<String> message = messageToList(data);
+
+		    switch(message.get(0)) {
+		    case "update":
+			readSongs();
+			break;
+		    case "exit":
+			connected = false;
+			System.out.println("Lost connection to server! Server was shut down.");
+			return;
+		    default:
+			;
+		    }
+
+		} catch (IOException e) {
+		    // System.out.println("Failed to read from server!");
+		}
+	    }
+	}
+
+	public void stop() {
+	    running = false;
+	}
+    }
+
+    private ListenThread listener;
+    
     private String address;
     private int port;
 
@@ -17,8 +60,10 @@ public class Communicator {
     private DataOutputStream toServer;
     private BufferedReader fromServer;
 
-    private List<Song> songs;
-    
+    private boolean connected = false;
+
+    private List<Song> songs; // Volatile?
+
     /**
      * Initializes a newly created Communicator object and requests songs.
      *
@@ -41,19 +86,43 @@ public class Communicator {
 	fromServer = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
 	toServer.writeBytes("connect:erlStream Java Client\n");
-	
-	songs = new ArrayList<Song>();
+
+	List<String> message = messageToList(fromServer.readLine());
+	if (message.size() == 2 && message.get(0).equals("connect")) {
+	    switch(message.get(1)) {
+	    case "ok":
+		break;
+	    default:
+		throw new Exception(); // TODO: Improve this
+	    }
+	} else {
+	    throw new Exception(); // TODO: Improve this
+	}
+
+	readSongs();
+	connected = true;
+	listener = new ListenThread();
+	new Thread(listener).start(); // Hand the listening over to a separate thread
+    }
+
+    /*
+     * Reads from fromServer and constructs a list of songs
+     */
+    private void readSongs() throws IOException {
+	List<Song> newSongs = new ArrayList<Song>();
 	String fileinfo;
 
 	while((fileinfo = fromServer.readLine()) != null && !fileinfo.equals("end")) {
-	    String[] split = fileinfo.split("\\|");
+	    String[] split = fileinfo.split(":");
 	    String name = split[0];
 	    String title = split[1];
 	    String artist = split[2];
 	    String album = split[3];
 	    int duration = Integer.parseInt(split[4]);
-	    songs.add(new Song(name, title, album, artist, duration));
+	    newSongs.add(new Song(name, title, album, artist, duration));
 	}
+
+	songs = newSongs;
     }
 
     /**
@@ -65,16 +134,49 @@ public class Communicator {
      * @see Song
      */
     public InputStream play(Song song, int offset) throws Exception {
-	Socket tempSocket = new Socket(address, port);
-	DataOutputStream out = new DataOutputStream(tempSocket.getOutputStream());
+	Socket temp = new Socket(address, port);
+	DataOutputStream out = new DataOutputStream(temp.getOutputStream());
+	BufferedReader in = new BufferedReader(new InputStreamReader(temp.getInputStream()));
 
 	out.writeBytes("play:" + offset + ":" + song.getFileName() + "\n");
     
-	return tempSocket.getInputStream();
+	List<String> message = messageToList(in.readLine());
+	if (message.size() >= 2 && message.get(0).equals("play")) {
+	    switch(message.get(1)) {
+	    case "ok":
+		break;
+	    case "error":
+		System.out.println("Play error: " + message.get(2));
+	    }
+	}
+
+	// If an error occured, this stream should be empty and closed on the server side
+	return temp.getInputStream();
     }
 
     public List<Song> getSongs() {
 	return songs;
+    }
+
+    private List<String> messageToList(String input) {
+	String[] splitInput = input.split(":");
+	
+	List<String> message = new ArrayList<String>();
+	
+	for (String s : splitInput) {
+	    message.add(s);
+	}
+	
+	return message;
+    }
+    
+    /**
+     * Returns true if this Communicator is connected to a server.
+     *
+     * @return true if this Communicator is connected to a server, false otherwise
+     */
+    public boolean isConnected() {
+	return connected;
     }
 
     /**
@@ -93,5 +195,26 @@ public class Communicator {
      */
     public int getPort() {
 	return port;
+    }
+
+    /**
+     * Closes the connection to the server.
+     */
+    public void disconnect() {
+	try {
+	    toServer.writeBytes("disconnect\n");
+	    toServer.close();
+	} catch (IOException e) {
+	}
+
+	if (listener != null) listener.stop();
+
+	try {
+	    connection.close();
+	} catch (IOException e) {
+	    e.printStackTrace();
+	} catch (NullPointerException e) {
+	    // Should not happen?
+	}
     }
 }

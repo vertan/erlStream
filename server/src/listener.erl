@@ -76,40 +76,49 @@ spawn_accept(State = #state{listensocket=ListenSocket}) ->
 accept(ListenSocket) ->
     {ok, Socket} = gen_tcp:accept(ListenSocket),
     gen_server:cast(?MODULE, {accepted, self()}),
-    loop(Socket).
+    handle_request(Socket).
 
-%% Reads and acts upon requests from clients.
-loop(Socket) ->
+%% Reads and acts upon requests from unknown clients.
+handle_request(Socket) ->
     Address = utils:socket_to_address(Socket),
-    case gen_tcp:recv(Socket,0) of
+    case gen_tcp:recv(Socket, 0) of
 	{ok, Data} ->
-	    Message = string:strip(Data, both, $\n),
-	    [Command|Arguments] = case string:tokens(Message, ":") of
-				      [C|A] ->
-					  [C|A];
-				      [] ->
-					  [""]
-				  end,
+	    [Command|Arguments] = message_to_list(Data),
 	    case Command of
 		"connect" ->
 		    connect(Socket),
 		    handle_client(Socket);
 		"play" ->
-		    io:format("~s <~s>: ~s~n", [utils:timestamp(), Address, Message]),
+		    io:format("~s <~s>: ~s~n", [utils:timestamp(), Address, string:strip(Data, right, $\n)]),
 		    play(Socket, Arguments)
 	    end;
 	{error, closed} ->
 	    client_manager:disconnect(Socket);
 	{error, Reason} ->
-	    io:format("Error: ~s~n", [Reason])
+	    io:format("Listener recv error: ~s~n", [Reason])
     end.
 
 connect(Socket) ->
     client_manager:connect(Socket),
     Songs = database:list(),
-    SongTitles = [[Song#song.filename, "|", Song#song.title, "|", Song#song.artist, "|", Song#song.album, "|", integer_to_list(Song#song.duration), "\n"] || Song <- Songs],
+    SongTitles = [Song#song.filename ++ ":" ++ Song#song.title ++ ":" ++ Song#song.artist ++ ":"
+		  ++ Song#song.album ++ ":" ++ integer_to_list(Song#song.duration) ++ "\n" || Song <- Songs],
     SongTitlesApp = lists:append(SongTitles),
-    gen_tcp:send(Socket, SongTitlesApp ++ "end\n").
+    gen_tcp:send(Socket, "connect:ok\n" ++  SongTitlesApp ++ "end\n").
+
+handle_client(Socket) ->
+    case gen_tcp:recv(Socket, 0) of
+	{ok, Data} ->
+	    [Command|_Arguments] = message_to_list(Data),
+	    case Command of
+		"disconnect" ->
+		    client_manager:disconnect(Socket);
+		_ ->
+		    handle_client(Socket)
+	    end;
+	{error, closed} ->
+	    client_manager:disconnect(Socket)
+    end.
 
 play(Socket, Arguments) ->
     [Offset|File] = Arguments,
@@ -117,21 +126,25 @@ play(Socket, Arguments) ->
     {StartMS, _StartRest} = string:to_integer(Offset),
     case database:play(Filename, StartMS) of
 	{ok, Data} ->
-	    gen_tcp:send(Socket, Data),
+	    gen_tcp:send(Socket, "play:ok\n" ++ Data),
 	    gen_tcp:close(Socket);
-	{error, Reason} ->
-	    gen_tcp:send(Socket, Reason),
+	{error, read_failed} ->
+	    gen_tcp:send(Socket, "play:error:Read failed on server side\n"),
+	    gen_tcp:close(Socket);
+	{error, no_such_file} ->
+	    gen_tcp:send(Socket, "play:error:Song does not exist\n"),
 	    gen_tcp:close(Socket)
     end.
 
-handle_client(Socket) ->
-    case gen_tcp:recv(Socket, 0) of
-	{ok, _} ->
-	    handle_client(Socket);
-	{error, closed} ->
-	    client_manager:disconnect(Socket)
-    end.
-    
+message_to_list(Message) ->    
+    StrippedMessage = string:strip(Message, right, $\n),
+    case string:tokens(StrippedMessage, ":") of
+	[] ->
+	    [""];
+	List ->
+	    List
+    end.    
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                             EUnit Test Cases                              %%

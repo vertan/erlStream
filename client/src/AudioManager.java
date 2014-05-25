@@ -356,7 +356,7 @@ public class AudioManager {
      * @return true if this AudioManager is connected to a server, false otherwise
      */
     public boolean isConnected() {
-	return true;
+	return communicator.isConnected();
     }
 
     /**
@@ -390,6 +390,14 @@ public class AudioManager {
      */
     public int getPort() {
 	return communicator.getPort();
+    }
+
+    /**
+     * Stops any current playback and closes the connection to the server.
+     */
+    public void close() {
+	stop();
+	communicator.disconnect();
     }
 
     /**
