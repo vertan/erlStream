@@ -5,7 +5,7 @@
 -module(client_manager).
 -behavior(gen_server).
 
--export([start/0, list/0, connect/1, disconnect/1, broadcast/1, stop/0]).
+-export([start/0, list/0, connect/2, disconnect/1, broadcast/1, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -23,8 +23,8 @@ start() ->
 list() ->
     gen_server:call(?MODULE, list).
 
-connect(Socket) ->
-    gen_server:cast(?MODULE, {connect, Socket}).
+connect(Socket, Name) ->
+    gen_server:cast(?MODULE, {connect, Socket, Name}).
 
 disconnect(Socket) ->
     gen_server:cast(?MODULE, {disconnect, Socket}).
@@ -46,8 +46,8 @@ init([]) ->
 handle_call(list, _From, State = #state{clients=Clients}) ->
     {reply, Clients, State}.
 
-handle_cast({connect, Socket}, State = #state{clients=Clients}) ->
-    NewClient = #client{socket=Socket, address=utils:socket_to_address(Socket), name="Unknown"},
+handle_cast({connect, Socket, Name}, State = #state{clients=Clients}) ->
+    NewClient = #client{socket=Socket, address=utils:socket_to_address(Socket), name=Name},
     io:format("~s Client connected: ~s (~s)~n", [utils:timestamp(), NewClient#client.address, NewClient#client.name]),
     {noreply, State#state{clients=[NewClient|Clients]}};
 handle_cast({disconnect, Socket}, State = #state{clients=Clients}) ->

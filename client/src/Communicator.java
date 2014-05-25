@@ -85,7 +85,7 @@ public class Communicator {
 	toServer = new DataOutputStream(connection.getOutputStream());
 	fromServer = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-	toServer.writeBytes("connect:erlStream Java Client\n");
+	toServer.writeBytes("connect:Java erlStream Client\n");
 
 	List<String> message = messageToList(fromServer.readLine());
 	if (message.size() == 2 && message.get(0).equals("connect")) {

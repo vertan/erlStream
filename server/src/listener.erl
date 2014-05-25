@@ -100,8 +100,8 @@ handle_request(Socket) ->
 
 connect(Socket, []) ->
     connect(Socket, ["Unknown"]);
-connect(Socket, [_Name|_]) ->
-    client_manager:connect(Socket),
+connect(Socket, [Name|_]) ->
+    client_manager:connect(Socket, Name),
     Songs = database:list(),
     SongTitles = [Song#song.filename ++ ":" ++ Song#song.title ++ ":" ++ Song#song.artist ++ ":"
 		  ++ Song#song.album ++ ":" ++ integer_to_list(Song#song.duration) ++ "\n" || Song <- Songs],
