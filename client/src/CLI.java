@@ -302,20 +302,7 @@ public class CLI extends UI {
 	    return;
 	}
 
-	List<Song> songs;
-	
-	try {
-	    songs = player.getSongs();
-	} catch (ConnectException e) {
-	    printError("Failed to connect to server!");
-	    return;
-	} catch (Throwable e) {
-	    System.out.println("Error " + e.getMessage());
-	    e.printStackTrace();
-	    return;
-	}
-
-	printSongTable(songs);
+	printSongTable(player.getSongs());
     }
 
     /*

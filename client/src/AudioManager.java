@@ -97,7 +97,7 @@ public class AudioManager {
     public AudioManager(String address, int port) throws Exception {
 	communicator = new Communicator(address, port);
 	listener = new TransitionHandler();
-	songs = getSongs();
+	getSongs();
     }
 
     /**
@@ -364,8 +364,8 @@ public class AudioManager {
      *
      * @return The available songs
      */
-    public List<Song> getSongs() throws Exception {
-	songs = communicator.list();
+    public List<Song> getSongs() {
+	songs = communicator.getSongs();
 
 	if (sortmode != 0) {
 	    sort(sortmode);

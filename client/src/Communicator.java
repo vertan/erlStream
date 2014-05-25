@@ -16,9 +16,11 @@ public class Communicator {
     private Socket connection;
     private DataOutputStream toServer;
     private BufferedReader fromServer;
+
+    private List<Song> songs;
     
     /**
-     * Initializes a newly created Communicator object.
+     * Initializes a newly created Communicator object and requests songs.
      *
      * @param address The address to the server to communicate with
      * @param inPort The port to read data from
@@ -27,45 +29,20 @@ public class Communicator {
     public Communicator(String address, int port) throws Exception {
 	this.address = address;
 	this.port = port;
-	initConnection();
+	connect(address, port);
     }
 
     /*
-     * Initializes the variables inSocket, outSocket, toServer and fromServer.
+     * Attempts to connect to the given server.
      */
-    private void initConnection() throws Exception {
+    private void connect(String address, int port) throws Exception {
 	connection = new Socket(address, port);
 	toServer = new DataOutputStream(connection.getOutputStream());
 	fromServer = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-    }
 
-    /**
-     * Checks whether the server is reachable or not.
-     *
-     * @return true if the server is reachable and responding, false otherwise
-     */
-    public boolean ping() {
-	try {
-	    initConnection();
-	}
-	catch (Throwable e) {
-	    System.out.println("Error " + e.getMessage());
-	    e.printStackTrace();
-	    return false;
-	}
-	return true;
-    }
-    
-    /**
-     * Returns the available songs on the server.
-     *
-     * @return Song objects representing the songs available on the server
-     * @see Song
-     */
-    public List<Song> list() throws Exception {
-	toServer.writeBytes("list\n");
+	toServer.writeBytes("connect:erlStream Java Client\n");
 	
-	List<Song> songs = new ArrayList<Song>();
+	songs = new ArrayList<Song>();
 	String fileinfo;
 
 	while((fileinfo = fromServer.readLine()) != null && !fileinfo.equals("end")) {
@@ -77,8 +54,6 @@ public class Communicator {
 	    int duration = Integer.parseInt(split[4]);
 	    songs.add(new Song(name, title, album, artist, duration));
 	}
-
-	return songs;
     }
 
     /**
@@ -93,9 +68,13 @@ public class Communicator {
 	Socket tempSocket = new Socket(address, port);
 	DataOutputStream out = new DataOutputStream(tempSocket.getOutputStream());
 
-	out.writeBytes("play " + offset + " " + song.getFileName() + "\n");
+	out.writeBytes("play:" + offset + ":" + song.getFileName() + "\n");
     
 	return tempSocket.getInputStream();
+    }
+
+    public List<Song> getSongs() {
+	return songs;
     }
 
     /**

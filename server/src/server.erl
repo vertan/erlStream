@@ -4,7 +4,7 @@
 -module(server).
 -behavior(gen_server).
 
--export([start/0, start_cli/0, list/0, refresh/0, stop/0]).
+-export([start/0, start_cli/0, list/0, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -64,19 +64,6 @@ list() ->
     io:format("~p song(s):~n~n", [length(Songs)]),
     [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
     io:format("~n").
-
-%% @doc Reloads the server's database.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
--spec refresh() -> ok.
-
-refresh() ->
-    io:format("Loading songs into database... "),
-    Songs = gen_server:call(?MODULE, refresh),
-    io:format("~p songs loaded!~n", [length(Songs)]).
 
 %% @doc Stops the server.
 %%
@@ -180,7 +167,6 @@ print_help() ->
     io:format("------------------~n"),
     io:format("clients \tList connected clients~n"),
     io:format("ls \t\tList available songs~n"),
-    io:format("refresh \tLoad files to database~n"),
     io:format("help \t\tShow this dialog~n"),
     io:format("stop \t\tStop the server~n"),
     io:format("~n").
@@ -200,9 +186,6 @@ cli() ->
 	    cli();
 	"ls\n" ->
 	    list(),
-	    cli();
-	"refresh\n" ->
-	    refresh(),
 	    cli();
 	"help\n" ->
 	    print_help(),

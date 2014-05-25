@@ -45,11 +45,11 @@ handle_call(list, _From, State = #state{clients=Clients}) ->
 
 handle_cast({connect, Socket}, State = #state{clients=Clients}) ->
     NewClient = #client{socket=Socket, address=utils:socket_to_address(Socket), name="Unknown"},
-    io:format("~s ~s (~s) connected!~n", [utils:timestamp(), NewClient#client.address, NewClient#client.name]),
+    io:format("~s Connected: ~s (~s)~n", [utils:timestamp(), NewClient#client.address, NewClient#client.name]),
     {noreply, State#state{clients=[NewClient|Clients]}};
 handle_cast({disconnect, Socket}, State = #state{clients=Clients}) ->
     Client = get_client(Socket, Clients),
-    io:format("~s ~s (~s) disconnected!~n", [utils:timestamp(), Client#client.address, Client#client.name]),
+    io:format("~s Disconnected: ~s (~s)~n", [utils:timestamp(), Client#client.address, Client#client.name]),
     UpdatedClients = lists:delete(Client, Clients),
     {noreply, State#state{clients=UpdatedClients}};
 handle_cast(stop, State) ->

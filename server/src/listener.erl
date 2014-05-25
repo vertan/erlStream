@@ -76,7 +76,6 @@ spawn_accept(State = #state{listensocket=ListenSocket}) ->
 accept(ListenSocket) ->
     {ok, Socket} = gen_tcp:accept(ListenSocket),
     gen_server:cast(?MODULE, {accepted, self()}),
-    client_manager:connect(Socket),
     loop(Socket).
 
 %% Reads and acts upon requests from clients.
@@ -85,14 +84,19 @@ loop(Socket) ->
     case gen_tcp:recv(Socket,0) of
 	{ok, Data} ->
 	    Message = string:strip(Data, both, $\n),
-	    io:format("~s Command received from ~s: ~s~n", [utils:timestamp(), Address, Message]),
-	    [Command|Arguments] = string:tokens(Message, " "),
+	    [Command|Arguments] = case string:tokens(Message, ":") of
+				      [C|A] ->
+					  [C|A];
+				      [] ->
+					  [""]
+				  end,
 	    case Command of
-		"list" ->
-		    worker(Socket, list),
-		    loop(Socket);
+		"connect" ->
+		    connect(Socket),
+		    handle_client(Socket);
 		"play" ->
-		    worker(Socket, {play, Arguments})
+		    io:format("~s <~s>: ~s~n", [utils:timestamp(), Address, Message]),
+		    play(Socket, Arguments)
 	    end;
 	{error, closed} ->
 	    client_manager:disconnect(Socket);
@@ -100,34 +104,32 @@ loop(Socket) ->
 	    io:format("Error: ~s~n", [Reason])
     end.
 
-%% Sends data.
-send_data(Socket, Data) ->
-    gen_tcp:send(Socket, Data).
+connect(Socket) ->
+    client_manager:connect(Socket),
+    Songs = database:list(),
+    SongTitles = [[Song#song.filename, "|", Song#song.title, "|", Song#song.artist, "|", Song#song.album, "|", integer_to_list(Song#song.duration), "\n"] || Song <- Songs],
+    SongTitlesApp = lists:append(SongTitles),
+    gen_tcp:send(Socket, SongTitlesApp ++ "end\n").
 
-%% Sends a song and closes the socket.
-send_song(Socket, Data) ->
-    gen_tcp:send(Socket, Data),
-    client_manager:disconnect(Socket),
-    gen_tcp:close(Socket).
+play(Socket, Arguments) ->
+    [Offset|File] = Arguments,
+    Filename = string:join(File, " "),
+    {StartMS, _StartRest} = string:to_integer(Offset),
+    case database:play(Filename, StartMS) of
+	{ok, Data} ->
+	    gen_tcp:send(Socket, Data),
+	    gen_tcp:close(Socket);
+	{error, Reason} ->
+	    gen_tcp:send(Socket, Reason),
+	    gen_tcp:close(Socket)
+    end.
 
-%% Does the given task and sends the data back through the socket.
-worker(Socket, Command) ->
-    case Command of
-	list ->
-	    Songs = database:list(),
-	    SongTitles = [[Song#song.filename, "|", Song#song.title, "|", Song#song.artist, "|", Song#song.album, "|", integer_to_list(Song#song.duration), "\n"] || Song <- Songs],
-	    SongTitlesApp = lists:append(SongTitles),
-	    send_data(Socket, SongTitlesApp ++ "end\n");
-	{play, Arguments} ->
-	    [Offset|File] = Arguments,
-	    Filename = string:join(File, " "),
-	    {StartMS, _StartRest} = string:to_integer(Offset),
-	    case database:play(Filename, StartMS) of
-		{ok, Data} ->
-		    send_song(Socket, Data);
-		{error, Reason} ->
-		    send_data(Socket, Reason)
-	    end
+handle_client(Socket) ->
+    case gen_tcp:recv(Socket, 0) of
+	{ok, _} ->
+	    handle_client(Socket);
+	{error, closed} ->
+	    client_manager:disconnect(Socket)
     end.
     
 
