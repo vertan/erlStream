@@ -59,7 +59,7 @@ play(Filename, Offset) ->
 
 init({Directory, UpdateInterval}) ->
     process_flag(trap_exit, true), %% Is this needed?
-    Updater = proc_lib:spawn_link(fun() -> updater(Directory, UpdateInterval, "") end),
+    Updater = proc_lib:spawn_link(fun() -> updater(Directory, UpdateInterval) end),
     Songs = load(Directory),
     {ok, #state{directory=Directory, songs=Songs, updater=Updater}}.
 
@@ -77,6 +77,7 @@ handle_call({exists, Filename}, _From, State = #state{songs=Songs}) ->
     {reply, Reply, State}.
 
 handle_cast({update, UpdatedSongs}, State) ->
+    io:format("~s Database updated, notifying clients...~n", [utils:timestamp()]),
     SongTitles = [Song#song.filename ++ ":" ++ Song#song.title ++ ":" ++ Song#song.artist ++ ":"
 		  ++ Song#song.album ++ ":" ++ integer_to_list(Song#song.duration) ++ "\n" || Song <- UpdatedSongs],
     SongTitlesApp = lists:append(SongTitles),
@@ -103,6 +104,10 @@ code_change(_OldVersion, State, _Extra) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            Internal functions                             %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+updater(Directory, Interval) ->
+    SongString = os:cmd("ls " ++ Directory ++ "/ | egrep '.*.mp3'"),
+    updater(Directory, Interval, SongString).
 
 updater(Directory, Interval, SongString) ->
     timer:sleep(Interval),

@@ -86,7 +86,7 @@ handle_request(Socket) ->
 	    [Command|Arguments] = message_to_list(Data),
 	    case Command of
 		"connect" ->
-		    connect(Socket),
+		    connect(Socket, Arguments),
 		    handle_client(Socket);
 		"play" ->
 		    io:format("~s <~s>: ~s~n", [utils:timestamp(), Address, string:strip(Data, right, $\n)]),
@@ -98,7 +98,9 @@ handle_request(Socket) ->
 	    io:format("Listener recv error: ~s~n", [Reason])
     end.
 
-connect(Socket) ->
+connect(Socket, []) ->
+    connect(Socket, ["Unknown"]);
+connect(Socket, [_Name|_]) ->
     client_manager:connect(Socket),
     Songs = database:list(),
     SongTitles = [Song#song.filename ++ ":" ++ Song#song.title ++ ":" ++ Song#song.artist ++ ":"
