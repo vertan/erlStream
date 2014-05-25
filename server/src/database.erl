@@ -5,21 +5,21 @@
 -module(database).
 -behavior(gen_server).
 
--export([start/1, list/0, get_directory/0, exists/1, refresh/0, play/2, stop/0]).
+-export([start/2, list/0, get_directory/0, exists/1, play/2, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("kernel/include/file.hrl").
 -include("song.hrl").
 
--record(state, {directory, songs}).
+-record(state, {directory, songs, updater}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                    API                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-start(Directory) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, Directory, []).
+start(Directory, UpdateInterval) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, {Directory, UpdateInterval}, []).
 
 list() ->
     gen_server:call(?MODULE, list).
@@ -29,9 +29,6 @@ get_directory() ->
 
 exists(Filename) ->
     gen_server:call(?MODULE, {exists, Filename}).
-
-refresh() ->
-    gen_server:cast(?MODULE, refresh).
 
 stop() ->
     gen_server:cast(?MODULE, stop).
@@ -60,10 +57,11 @@ play(Filename, Offset) ->
 %%                             Server functions                              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-init(Directory) ->
+init({Directory, UpdateInterval}) ->
     process_flag(trap_exit, true), %% Is this needed?
+    Updater = proc_lib:spawn_link(fun() -> updater(Directory, UpdateInterval, "") end),
     Songs = load(Directory),
-    {ok, #state{directory=Directory, songs=Songs}}.
+    {ok, #state{directory=Directory, songs=Songs, updater=Updater}}.
 
 handle_call(list, _From, State = #state{songs=Songs}) ->
     {reply, Songs, State};
@@ -78,8 +76,7 @@ handle_call({exists, Filename}, _From, State = #state{songs=Songs}) ->
 	    end,
     {reply, Reply, State}.
 
-handle_cast(refresh, State = #state{directory=Directory}) ->
-    UpdatedSongs = load(Directory),
+handle_cast({update, UpdatedSongs}, State) ->
     {noreply, State#state{songs=UpdatedSongs}};
 handle_cast(stop, State) ->
     {stop, normal, State}.
@@ -102,6 +99,18 @@ code_change(_OldVersion, State, _Extra) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            Internal functions                             %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+updater(Directory, Interval, SongString) ->
+    timer:sleep(Interval),
+    UpdatedSongString = os:cmd("ls " ++ Directory ++ "/ | egrep '.*.mp3'"),
+    if
+	UpdatedSongString =/= SongString ->
+	    UpdatedSongs = load(Directory),
+	    gen_server:cast(?MODULE, {update, UpdatedSongs});
+	true ->
+	    ok
+    end,
+    updater(Directory, Interval, UpdatedSongString).
 
 load(Directory) ->
     FilesString = os:cmd("ls " ++ Directory ++ "/ | egrep '.*.mp3'"),

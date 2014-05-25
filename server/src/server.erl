@@ -101,8 +101,9 @@ init([]) ->
 
     Port = 1340,
 
+    %% TODO: Check for fails
     io:format("Starting database... "),
-    database:start("../files"),
+    database:start("../files", 10000),
     io:format("~w songs loaded!~n", [length(database:list())]),
 
     io:format("Starting client manager... "),
