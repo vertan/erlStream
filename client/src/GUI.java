@@ -7,7 +7,7 @@ import static java.awt.Color.*;
 import java.awt.event.*;
 
 
-public class GUI extends UI {
+public class GUI implements UI {
 
     private class Update implements Runnable{
             @Override

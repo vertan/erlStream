@@ -11,7 +11,7 @@ import java.net.*;
  *
  * @see Communicator
  */
-public class CLI extends UI {
+public class CLI implements UI {
     private AudioManager player;
     private boolean quitPending, connected;
     private Scanner sc;
