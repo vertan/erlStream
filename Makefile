@@ -73,12 +73,12 @@ JAVA_FILES :=  	client/src/Client.java \
 		client/src/Song.java \
 		client/src/Communicator.java
 
-CLASS_FILES := $(patsubst client/src/%.java,client/bin/%.class,${JAVA_FILES})
-
 CLASS_DIR := ../bin
 
-client:	$(JAVA_FILES)
+client:	FORCE
 	(cd client/src && $(JAVAC) $(JAVA_FLAGS) Client.java -d $(CLASS_DIR))
+
+FORCE:
 
 start_client: client
 	(cd client/bin && java $(JAVA_FLAGS) Client)
