@@ -93,6 +93,9 @@ test_client: client
 doc_client:
 	javadoc $(JAVA_FILES) -d client/doc/
 
+jar: client
+	jar cvfm erlStream.jar Manifest.txt -C client/bin/ .
+
 clean_client:
 	rm -f client/bin/*.class
 	rm -fr client/doc/*
