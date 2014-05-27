@@ -248,7 +248,7 @@ public class GUI implements UI {
        //songList
         try {
             songList = manager.getSongs();
-            data = new Object[3][songList.size()];
+            data = new Object[songList.size()][songList.size()];
         } catch (Exception ex) {}
 
         try {
