@@ -1,5 +1,5 @@
 %% @author Filip Hedman (hedman.filip@gmail.com), Jeanette Castillo (jeanette.cas@hotmail.com), Robert Kallgren (robertkallgren@gmail.com), Oscar Mangard (oscarmangard@gmail.com), Mikael Sernheim (mikael.sernheim@gmail.com)
-%% @doc Main code which handles requests
+%% @doc Entry point to the server
 
 -module(server).
 -behavior(gen_server).
