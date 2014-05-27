@@ -14,7 +14,7 @@ import java.util.Collections;
  *
  * @see Communicator
  */
-public class AudioManager {
+public class AudioManager implements UpdateListener {
     private class TransitionHandler extends PlaybackListener {
 	public void playbackStarted(PlaybackEvent e) {
 	    startTime = System.currentTimeMillis();
@@ -87,6 +87,8 @@ public class AudioManager {
     private long startTime, pauseTime;
     private int pausePosition, offset, sortmode;
 
+    private List<StatusListener> observers;
+
     /**
      * Initializes a newly created AudioManager object.
      *
@@ -96,8 +98,12 @@ public class AudioManager {
      */
     public AudioManager(String address, int port) throws Exception {
 	communicator = new Communicator(address, port);
+	songs = communicator.connect();
+	sort(sortmode);
+	communicator.addUpdateListener(this);
+	observers = new ArrayList<StatusListener>();
 	listener = new TransitionHandler();
-	getSongs();
+	sort(sortmode);
     }
 
     /**
@@ -365,12 +371,6 @@ public class AudioManager {
      * @return The available songs
      */
     public List<Song> getSongs() {
-	songs = communicator.getSongs();
-
-	if (sortmode != 0) {
-	    sort(sortmode);
-	}
-
 	return songs;
     }
 
@@ -444,5 +444,33 @@ public class AudioManager {
 	}
 
 	return songs;
+    }
+
+    public void songsUpdated(List<Song> newSongs) {
+	songs = newSongs;
+	sort(sortmode);
+	for (StatusListener observer: observers) {
+	    observer.songsUpdated(songs);
+	}
+    }
+
+    public void serverShutdown() {
+	for (StatusListener observer: observers) {
+	    observer.serverShutdown();
+	}
+    }
+
+    public void connectionLost() {
+	for (StatusListener observer: observers) {
+	    observer.connectionLost();
+	}
+    }
+
+    public void addStatusListener(StatusListener observer) {
+	observers.add(observer);
+    }
+
+    public void removeStatusListener(StatusListener observer) {
+	observers.remove(observer);
     }
 }

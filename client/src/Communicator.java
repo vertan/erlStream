@@ -8,6 +8,8 @@ import java.net.*;
  * The Communicator class provides methods to list and play audio files on a server that is running the erlStream server program.
  *
  * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+ *
+ * @see UpdateListener
  */
 public class Communicator {
     // This thread runs in the background and reads messages from the server.
@@ -21,7 +23,9 @@ public class Communicator {
 
 		    if (data == null) {
 			connected = false;
-			System.out.println("Lost connection to server! Network error.");
+			for (UpdateListener observer : observers) {
+			    observer.connectionLost();
+			}
 			return;
 		    }
 
@@ -30,11 +34,16 @@ public class Communicator {
 
 		    switch(message.get(0)) {
 		    case "update":
-			readSongs();
+			List<Song> songs = readSongs();
+			for (UpdateListener observer : observers) {
+			    observer.songsUpdated(songs);
+			}
 			break;
 		    case "exit":
 			connected = false;
-			System.out.println("Lost connection to server! Server was shut down.");
+			for (UpdateListener observer : observers) {
+			    observer.serverShutdown();
+			}
 			return;
 		    default:
 			;
@@ -62,7 +71,7 @@ public class Communicator {
 
     private boolean connected = false;
 
-    private List<Song> songs; // Volatile?
+    private List<UpdateListener> observers;
 
     /**
      * Initializes a newly created Communicator object and requests songs.
@@ -74,13 +83,13 @@ public class Communicator {
     public Communicator(String address, int port) throws Exception {
 	this.address = address;
 	this.port = port;
-	connect(address, port);
+	observers = new ArrayList<UpdateListener>();
     }
 
-    /*
-     * Attempts to connect to the given server.
+    /**
+     * Attempts to connect to the given server, and returns Song-object for each available song on the server.
      */
-    private void connect(String address, int port) throws Exception {
+    public List<Song> connect() throws Exception {
 	connection = new Socket(address, port);
 	toServer = new DataOutputStream(connection.getOutputStream());
 	fromServer = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -99,17 +108,18 @@ public class Communicator {
 	    throw new Exception(); // TODO: Improve this
 	}
 
-	readSongs();
+	List<Song> songs = readSongs();
 	connected = true;
 	listener = new ListenThread();
 	new Thread(listener).start(); // Hand the listening over to a separate thread
+	return songs;
     }
 
     /*
      * Reads from fromServer and constructs a list of songs
      */
-    private void readSongs() throws IOException {
-	List<Song> newSongs = new ArrayList<Song>();
+    private List<Song> readSongs() throws IOException {
+	List<Song> songs = new ArrayList<Song>();
 	String fileinfo;
 
 	while((fileinfo = fromServer.readLine()) != null && !fileinfo.equals("end")) {
@@ -119,10 +129,10 @@ public class Communicator {
 	    String artist = split[2];
 	    String album = split[3];
 	    int duration = Integer.parseInt(split[4]);
-	    newSongs.add(new Song(name, title, album, artist, duration));
+	    songs.add(new Song(name, title, album, artist, duration));
 	}
 
-	songs = newSongs;
+	return songs;
     }
 
     /**
@@ -152,10 +162,6 @@ public class Communicator {
 
 	// If an error occured, this stream should be empty and closed on the server side
 	return temp.getInputStream();
-    }
-
-    public List<Song> getSongs() {
-	return songs;
     }
 
     private List<String> messageToList(String input) {
@@ -216,5 +222,13 @@ public class Communicator {
 	} catch (NullPointerException e) {
 	    // Should not happen?
 	}
+    }
+
+    public void addUpdateListener(UpdateListener observer) {
+	observers.add(observer);
+    }
+
+    public void removeUpdateListener(UpdateListener observer) {
+	observers.remove(observer);
     }
 }

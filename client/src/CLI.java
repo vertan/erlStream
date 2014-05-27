@@ -11,7 +11,7 @@ import java.net.*;
  *
  * @see Communicator
  */
-public class CLI implements UI {
+public class CLI implements UI, StatusListener {
     private AudioManager player;
     private boolean quitPending, connected;
     private Scanner sc;
@@ -186,7 +186,13 @@ public class CLI implements UI {
 
 	try {
 	    AudioManager test = new AudioManager(address, port);
-	    if (player != null) player.stop();
+	    test.addStatusListener(this);
+
+	    if (player != null) {
+		player.stop();
+		player.removeStatusListener(this);
+	    }
+
 	    player = test;
 	    connectionSucceeded = true;
 	    System.out.println("connected!");
@@ -601,5 +607,17 @@ public class CLI implements UI {
 	}
 
 	list();
+    }
+
+    public void songsUpdated(List<Song> newSongs) {
+	System.out.println("New songlist available!");
+    }
+
+    public void serverShutdown() {
+	System.out.println("Server was shut down!");
+    }
+
+    public void connectionLost() {
+	System.out.println("Lost connection to server!");
     }
 }
