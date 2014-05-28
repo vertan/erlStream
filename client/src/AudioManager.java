@@ -13,79 +13,28 @@ import java.util.Collections;
  * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
  *
  * @see Communicator
+ * @see UpdateListener
+ * @see Song
  */
-public class AudioManager implements UpdateListener {
-    private class TransitionHandler extends PlaybackListener {
-	public void playbackStarted(PlaybackEvent e) {
-	    startTime = System.currentTimeMillis();
-	    playing = true;
-	}
-
-	public void playbackFinished(PlaybackEvent e) {
-	    pausePosition = e.getFrame();
-	    pauseTime = System.currentTimeMillis();
-
-	    if (isPlaying()) { // If the song ended
-		try {
-		    next();
-		} catch (Throwable t) {
-		    t.printStackTrace();
-		}
-	    }
-	}
-    }
-
+public class AudioManager extends PlaybackListener implements UpdateListener {
     private class PlayerThread implements Runnable {
 	public void run() {
 	    try {
 		player.play();
-	    } catch (Throwable e) {
+	    } catch (Exception e) {
 		playing = false;
 		currentSong = null;
 	    }
 	}
     }
 
-    static class BadSongException extends Exception {
-	public BadSongException(String message) {
-	    super(message);
-	}
-    }
-
-    private class TitleComparator implements Comparator<Song> {
-	public int compare(Song a, Song b) {
-	    return a.getFileName().toLowerCase().compareTo(b.getFileName().toLowerCase());
-	}
-    }
-
-    private class ArtistComparator implements Comparator<Song> {
-	public int compare(Song a, Song b) {
-	    return a.getArtist().toLowerCase().compareTo(b.getArtist().toLowerCase());
-	}
-    }
-
-    private class AlbumComparator implements Comparator<Song> {
-	public int compare(Song a, Song b) {
-	    return a.getAlbum().toLowerCase().compareTo(b.getAlbum().toLowerCase());
-	}
-    }
-
-    private class DurationComparator implements Comparator<Song> {
-	public int compare(Song a, Song b) {
-	    Integer aDur = Integer.valueOf(a.getDuration());
-	    Integer bDur = Integer.valueOf(b.getDuration());
-	    return aDur.compareTo(bDur);
-	}
-    }
-
     private Communicator communicator;
     private AdvancedPlayer player;
-    private PlaybackListener listener;
     private List<Song> songs;
     private Song currentSong;
     private boolean playing, paused, shuffle = false, repeat = true;
     private long startTime, pauseTime;
-    private int pausePosition, offset, sortmode;
+    private int pausePosition, offset, sortmode; // Make pausePosition double?
 
     private List<StatusListener> observers;
 
@@ -95,31 +44,36 @@ public class AudioManager implements UpdateListener {
      * @param address The address to the server to communicate with
      * @param inPort The port to read data from
      * @param outPort The port to write data to
+     *
+     * @throws UnknownHostException If the given address is invalid
+     * @throws IOException If a network error occured 
      */
-    public AudioManager(String address, int port) throws Exception {
+    public AudioManager(String address, int port) throws UnknownHostException, IOException {
 	communicator = new Communicator(address, port);
 	songs = communicator.connect();
-	sort(sortmode);
 	communicator.addUpdateListener(this);
 	observers = new ArrayList<StatusListener>();
-	listener = new TransitionHandler();
 	sort(sortmode);
     }
 
     /**
      * Starts playing from the first song in the queue.
+     *
+     * @throws BadSongException If no song exists in this AudioManager
+     * @throws UnknownHostException If the address given when creating this AudioManager is invalid
+     * @throws IOException If a network error occured
+     * @throws PlaybackFailedException If the playback libary failed
      */
-    public void play() throws Exception {
+    public void play() throws BadSongException, UnknownHostException, IOException, PlaybackFailedException  {
 	if (isPaused()) {
 	    play(currentSong, pausePosition + offset);
 	    return;
 	}
 
 	if (songs.isEmpty()) {
-	    return; // throw?
+	    throw new BadSongException("No songs available");
 	}
 
-	// TODO: Throw exception if no song exists
 	play(songs.get(0), 0);
     }
 
@@ -129,9 +83,9 @@ public class AudioManager implements UpdateListener {
      * @param song The song to play
      * @param offset The number of milliseconds to skip ahead
      */
-    public void play(Song song, int offset) throws Exception {
+    public void play(Song song, int offset) throws BadSongException, UnknownHostException, IOException, PlaybackFailedException {
 	if (!exists(song)) {
-	    throw new BadSongException(song.getTitle());
+	    throw new BadSongException(song.getFileName());
 	}
 
 	this.offset = offset;
@@ -143,12 +97,36 @@ public class AudioManager implements UpdateListener {
 	currentSong = song;
 
 	InputStream audio = communicator.play(song, offset);
-	player = new AdvancedPlayer(audio);
-	player.setPlayBackListener(listener);
+
+	try {
+	    player = new AdvancedPlayer(audio);
+	} catch (Exception e) {
+	    throw new PlaybackFailedException("Playback library error");
+	}
+
+	player.setPlayBackListener(this);
 
 	startTime = System.currentTimeMillis(); // Preliminary guess
 	playing = true; // Probably risky, but needed for getPosition()
 	new Thread(new PlayerThread()).start();
+    }
+
+    public void playbackStarted(PlaybackEvent e) {
+	startTime = System.currentTimeMillis();
+	playing = true;
+    }
+
+    public void playbackFinished(PlaybackEvent e) {
+	pausePosition = e.getFrame();
+	pauseTime = System.currentTimeMillis();
+
+	if (isPlaying()) { // If the song ended
+	    try {
+		next();
+	    } catch (Exception ex) {
+		// Probably best to be quiet about this
+	    }
+	}
     }
 
     /**
@@ -157,7 +135,7 @@ public class AudioManager implements UpdateListener {
      * @param title The title of the song
      * @param offset The number of milliseconds to skip ahead
      */
-    public void playSongByTitle(String title, int offset) throws Exception {
+    public void playSongByTitle(String title, int offset) throws BadSongException, UnknownHostException, IOException, PlaybackFailedException {
 	Song song = getSongByTitle(title);
 	if (song == null) {
 	    throw new BadSongException(title);
@@ -220,7 +198,7 @@ public class AudioManager implements UpdateListener {
     /**
      * Plays the next song in the queue.
      */
-    public void next() throws Exception {
+    public void next() throws BadSongException, UnknownHostException, IOException, PlaybackFailedException {
 	if (isPlaying() || isPaused()) {
 	    Song next;
 
@@ -239,7 +217,7 @@ public class AudioManager implements UpdateListener {
 
 	    try {
 		play(next, 0);		    
-	    } catch (BadSongException e) { // Should not happen, but just in case
+	    } catch (Exception e) { // Should not happen, but just in case
 		stop();
 		throw e;
 	    }
@@ -249,7 +227,7 @@ public class AudioManager implements UpdateListener {
     /**
      * Plays the previous song in the queue.
      */
-    public void previous() throws Exception {
+    public void previous() throws BadSongException, UnknownHostException, IOException, PlaybackFailedException {
 	if (isPlaying() || isPaused()) {
 	    // TODO: Implement history?
 	    Song next;
@@ -268,7 +246,7 @@ public class AudioManager implements UpdateListener {
 
 	    try {
 		play(next, 0);		    
-	    } catch (BadSongException e) { // Should not happen, but just in case
+	    } catch (Exception e) { // Should not happen, but just in case
 		stop();
 		throw e;
 	    }
@@ -404,7 +382,7 @@ public class AudioManager implements UpdateListener {
      * Sorts the songs by title, artist, album or duration.
      * 
      * @param sortmode 0/1 for title ascending/descending, 2/3 for artist ascending/descending, 4/5 for album ascending/descending and 6/7 for duration ascending/descending
-     * @return The available songs, sorted by title
+     * @return The available songs, sorted according to the argument
      */
     public List<Song> sort(int sortmode) {
 	this.sortmode = sortmode;
@@ -444,6 +422,32 @@ public class AudioManager implements UpdateListener {
 	}
 
 	return songs;
+    }
+
+    private class TitleComparator implements Comparator<Song> {
+	public int compare(Song a, Song b) {
+	    return a.getFileName().toLowerCase().compareTo(b.getFileName().toLowerCase());
+	}
+    }
+
+    private class ArtistComparator implements Comparator<Song> {
+	public int compare(Song a, Song b) {
+	    return a.getArtist().toLowerCase().compareTo(b.getArtist().toLowerCase());
+	}
+    }
+
+    private class AlbumComparator implements Comparator<Song> {
+	public int compare(Song a, Song b) {
+	    return a.getAlbum().toLowerCase().compareTo(b.getAlbum().toLowerCase());
+	}
+    }
+
+    private class DurationComparator implements Comparator<Song> {
+	public int compare(Song a, Song b) {
+	    Integer aDur = Integer.valueOf(a.getDuration());
+	    Integer bDur = Integer.valueOf(b.getDuration());
+	    return aDur.compareTo(bDur);
+	}
     }
 
     public void songsUpdated(List<Song> newSongs) {

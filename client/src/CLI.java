@@ -196,7 +196,7 @@ public class CLI implements UI, StatusListener {
 	    player = test;
 	    connectionSucceeded = true;
 	    System.out.println("connected!");
-	} catch (Throwable e) {
+	} catch (Exception e) {
 	    System.out.println("failed!");
 	}
 
@@ -326,9 +326,14 @@ public class CLI implements UI, StatusListener {
 	    try {
 		player.play();
 		status();
-	    } catch (Throwable e) {
-		System.out.println("Error " + e.getMessage());
-		e.printStackTrace();
+	    } catch (BadSongException e) {
+		System.out.println("No songs available.");
+	    } catch (UnknownHostException e) {
+		System.out.println("A network error occured!");
+	    } catch (IOException e) {
+		System.out.println("A network error occured!");
+	    } catch (PlaybackFailedException e) {
+		System.out.println("A playback error occured!");
 	    }
 	    return;
 	}
@@ -344,14 +349,14 @@ public class CLI implements UI, StatusListener {
 	try {
 	    player.playSongByTitle(title, offset);
 	    status();
-	} catch (AudioManager.BadSongException e) {
+	} catch (BadSongException e) {
 	    System.out.println("There is no song titled \"" + title + "\".");
-	} catch (ConnectException e) {
-	    // TODO: Handle this better
-	    printError("Failed to connect to server!");
-	} catch (Throwable e) {
-	    System.out.println("Error " + e.getMessage());
-	    e.printStackTrace();
+	} catch (UnknownHostException e) {
+	    System.out.println("A network error occured!");
+	} catch (IOException e) {
+	    System.out.println("A network error occured!");
+	} catch (PlaybackFailedException e) {
+	    System.out.println("A playback error occured!");
 	}
     }
     

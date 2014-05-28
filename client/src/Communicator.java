@@ -12,14 +12,15 @@ import java.net.*;
  * @see UpdateListener
  */
 public class Communicator {
-    // This thread runs in the background and reads messages from the server.
     private class ListenThread implements Runnable {
 	private volatile boolean running = true;
 
 	public void run() {
+	    String data;
+	    
 	    while(running) {
 		try {
-		    String data = fromServer.readLine();
+		    data = fromServer.readLine();
 
 		    if (data == null) {
 			connected = false;
@@ -29,7 +30,6 @@ public class Communicator {
 			return;
 		    }
 
-		    // Parse messages from server
 		    List<String> message = messageToList(data);
 
 		    switch(message.get(0)) {
@@ -48,9 +48,8 @@ public class Communicator {
 		    default:
 			;
 		    }
-
 		} catch (IOException e) {
-		    // System.out.println("Failed to read from server!");
+		    // System.out.println("Error while reading from server!");
 		}
 	    }
 	}
@@ -60,8 +59,6 @@ public class Communicator {
 	}
     }
 
-    private ListenThread listener;
-    
     private String address;
     private int port;
 
@@ -69,9 +66,10 @@ public class Communicator {
     private DataOutputStream toServer;
     private BufferedReader fromServer;
 
-    private boolean connected = false;
-
+    private ListenThread listener;
     private List<UpdateListener> observers;
+    
+    private boolean connected = false;
 
     /**
      * Initializes a newly created Communicator object and requests songs.
@@ -80,7 +78,7 @@ public class Communicator {
      * @param inPort The port to read data from
      * @param outPort The port to write data to
      */
-    public Communicator(String address, int port) throws Exception {
+    public Communicator(String address, int port) {
 	this.address = address;
 	this.port = port;
 	observers = new ArrayList<UpdateListener>();
@@ -89,7 +87,7 @@ public class Communicator {
     /**
      * Attempts to connect to the given server, and returns Song-object for each available song on the server.
      */
-    public List<Song> connect() throws Exception {
+    public List<Song> connect() throws UnknownHostException, IOException {
 	connection = new Socket(address, port);
 	toServer = new DataOutputStream(connection.getOutputStream());
 	fromServer = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -102,10 +100,10 @@ public class Communicator {
 	    case "ok":
 		break;
 	    default:
-		throw new Exception(); // TODO: Improve this
+		throw new IOException();
 	    }
 	} else {
-	    throw new Exception(); // TODO: Improve this
+	    throw new IOException();
 	}
 
 	List<Song> songs = readSongs();
@@ -143,7 +141,7 @@ public class Communicator {
      * @return true if the file exists on the server and the playback succeeded, false otherwise
      * @see Song
      */
-    public InputStream play(Song song, int offset) throws Exception {
+    public InputStream play(Song song, int offset) throws UnknownHostException, IOException {
 	Socket temp = new Socket(address, port);
 	DataOutputStream out = new DataOutputStream(temp.getOutputStream());
 	BufferedReader in = new BufferedReader(new InputStreamReader(temp.getInputStream()));
@@ -207,13 +205,13 @@ public class Communicator {
      * Closes the connection to the server.
      */
     public void disconnect() {
+	if (listener != null) listener.stop();
+
 	try {
 	    toServer.writeBytes("disconnect\n");
 	    toServer.close();
 	} catch (IOException e) {
 	}
-
-	if (listener != null) listener.stop();
 
 	try {
 	    connection.close();
