@@ -189,8 +189,7 @@ public class CLI implements UI, StatusListener {
 	    test.addStatusListener(this);
 
 	    if (player != null) {
-		player.stop();
-		player.removeStatusListener(this);
+		player.close();
 	    }
 
 	    player = test;
@@ -472,9 +471,13 @@ public class CLI implements UI, StatusListener {
 		} else {
 		    status();
 		}
-	    } catch (Throwable e) {
-		System.out.println("Error " + e.getMessage());
-		e.printStackTrace();
+	    } catch (BadSongException e) {
+	    } catch (UnknownHostException e) {
+		System.out.println("A network error occured!");
+	    } catch (IOException e) {
+		System.out.println("A network error occured!");
+	    } catch (PlaybackFailedException e) {
+		System.out.println("A playback error occured!");
 	    }
 	} else {
 	    System.out.println("No song is playing.");
@@ -494,9 +497,13 @@ public class CLI implements UI, StatusListener {
 	    try {
 		player.previous();
 		status();
-	    } catch (Throwable e) {
-		System.out.println("Error " + e.getMessage());
-		e.printStackTrace();
+	    } catch (BadSongException e) {
+	    } catch (UnknownHostException e) {
+		System.out.println("A network error occured!");
+	    } catch (IOException e) {
+		System.out.println("A network error occured!");
+	    } catch (PlaybackFailedException e) {
+		System.out.println("A playback error occured!");
 	    }
 	} else {
 	    System.out.println("No song is playing.");
