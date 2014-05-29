@@ -622,7 +622,7 @@ public class CLI implements UI, StatusListener {
     }
 
     public void songsUpdated(List<Song> newSongs) {
-	System.out.println("New songlist available!");
+	// System.out.println("New songlist available!");
     }
 
     public void serverShutdown() {
