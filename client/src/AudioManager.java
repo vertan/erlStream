@@ -30,13 +30,13 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
 
     private Communicator communicator;
     private AdvancedPlayer player;
-    private List<Song> songs;
-    private Song currentSong;
-    private boolean playing, paused, shuffle = false, repeat = true;
-    private long startTime, pauseTime;
-    private int pausePosition, offset, sortmode; // Make pausePosition double?
-
     private List<StatusListener> observers;
+
+    private volatile List<Song> songs;
+    private volatile Song currentSong;
+    private volatile boolean playing, paused, shuffle = false, repeat = true;
+    private volatile long startTime, pauseTime;
+    private volatile int pausePosition, offset, sortmode;
 
     /**
      * Initializes a newly created AudioManager object.
@@ -57,7 +57,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
     }
 
     /**
-     * Starts playing from the first song in the queue.
+     * Starts playing from the first song in the list.
      *
      * @throws BadSongException If no song exists in this AudioManager
      * @throws UnknownHostException If the address given when creating this AudioManager is invalid
@@ -101,6 +101,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
 	try {
 	    player = new AdvancedPlayer(audio);
 	} catch (Exception e) {
+	    playing = false;
 	    throw new PlaybackFailedException("Playback library error");
 	}
 
@@ -348,7 +349,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
      *
      * @return The available songs
      */
-    public List<Song> getSongs() {
+    public synchronized List<Song> getSongs() {
 	return songs;
     }
 
@@ -384,7 +385,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
      * @param sortmode 0/1 for title ascending/descending, 2/3 for artist ascending/descending, 4/5 for album ascending/descending and 6/7 for duration ascending/descending
      * @return The available songs, sorted according to the argument
      */
-    public List<Song> sort(int sortmode) {
+    public synchronized List<Song> sort(int sortmode) {
 	this.sortmode = sortmode;
 
 	switch(sortmode) {

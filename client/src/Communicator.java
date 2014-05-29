@@ -69,7 +69,7 @@ public class Communicator {
     private ListenThread listener;
     private List<UpdateListener> observers;
     
-    private boolean connected = false;
+    private volatile boolean connected = false;
 
     /**
      * Initializes a newly created Communicator object and requests songs.
