@@ -71,8 +71,13 @@ JAVA_FILES :=  	client/src/Client.java \
 		client/src/CLI.java \
 		client/src/AudioManager.java \
 		client/src/Song.java \
-		client/src/Communicator.java
+		client/src/Communicator.java \
+		client/src/BadSongException.java \
+		client/src/PlaybackFailedException.java \
+		client/src/StatusListener.java \
+		client/src/UpdateListener.java
 
+CLASS_FILES := $(patsubst client/src/%.java,client/bin/%.class,${JAVA_FILES})
 CLASS_DIR := ../bin
 
 client:	FORCE
