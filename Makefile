@@ -49,13 +49,13 @@ test_server: server
 	(cd server/ebin && erl -noinput -eval 'eunit:test({dir, "."}, [verbose]), init:stop()')
 
 doc_server: $(BEAM_FILES)
-	erl -noshell -eval "edoc:files($(EDOC_SRC_LIST), [{dir, 'server/doc/html'}])" -s init stop
+	erl -noshell -eval "edoc:files($(EDOC_SRC_LIST), [{dir, 'server/doc'}])" -s init stop
 
 clean_server:
 	rm -fr server/.#* *.dump
 	rm -fr server/ebin/*.dump
 	rm -fr server/ebin/*.beam
-	(cd server/doc/html && find . -name "*" -a ! -name overview.edoc ! -name . -exec rm -rf {} \;)
+	(cd server/doc && find . -name "*" -a ! -name overview.edoc ! -name . -exec rm -rf {} \;)
 
 
 ##########
@@ -94,11 +94,12 @@ doc_client:
 	javadoc $(JAVA_FILES) -d client/doc/
 
 jar: client
-	jar cvfm erlStream.jar Manifest.txt -C client/bin/ .
+	jar cvfm erlStream-client.jar Manifest.txt -C client/bin/ .
 
 clean_client:
 	rm -f client/bin/*.class
 	rm -fr client/doc/*
+	rm -f erlStream-client.jar
 
 
 #########
@@ -114,7 +115,7 @@ ARCHIVE_NAME :=  $(REQUIRED_DIR_NAME)_archive_$(USER)_$(shell date "+%Y-%m-%d__%
 ARCHIVE_DIR := ..
 
 remove_finderinfo:
-	-xattr -d "com.apple.FinderInfo" server/src/*.erl server/include/*.hrl doc/* server/doc/html/*
+	-xattr -d "com.apple.FinderInfo" server/src/*.erl server/include/*.hrl doc/* server/doc/*
 
 archive: clean
 ifeq ($(REQUIRED_DIR_NAME), $(PROJECT_DIR))
