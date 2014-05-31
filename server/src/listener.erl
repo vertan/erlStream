@@ -122,9 +122,10 @@ handle_client(Socket) ->
 	    client_manager:disconnect(Socket)
     end.
 
+play(_Socket, Arguments) when length(Arguments) =/= 2 ->
+    ok;
 play(Socket, Arguments) ->
-    [Offset|File] = Arguments,
-    Title = string:join(File, " "),
+    [Offset, Title] = Arguments,
     {StartMS, _StartRest} = string:to_integer(Offset),
     case database:play(Title, StartMS) of
 	{ok, Data} ->
