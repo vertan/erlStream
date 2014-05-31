@@ -71,7 +71,7 @@ public class Communicator {
     private int port;
     private Socket connection;
     private DataOutputStream toServer;
-    private BufferedReader fromServer;
+    private volatile BufferedReader fromServer;
     private Thread listenThread;
     private List<UpdateListener> observers;
 
@@ -234,7 +234,7 @@ public class Communicator {
 	    } catch (Exception e) {
 	    }
 	    try {
-		connection.close(); // To unblock listenThread in case it's reading
+		fromServer.close(); // To unblock listenThread in case it's reading
 	    } catch (Exception e) {
 	    }
 	    try {
@@ -245,7 +245,7 @@ public class Communicator {
 	
 	// In case listenThread opened a new connection
 	try {
-	    connection.close();
+	    fromServer.close();
 	} catch (Exception e) {
 	}
 
