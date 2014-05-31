@@ -471,6 +471,14 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
 	}
     }
 
+    public void connectionRegained(List<Song> songs) {
+	this.songs = songs;
+	sort(sortmode);
+	for (StatusListener observer: observers) {
+	    observer.connectionRegained(songs);
+	}
+    }
+
     public void addStatusListener(StatusListener observer) {
 	observers.add(observer);
     }

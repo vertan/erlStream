@@ -626,10 +626,14 @@ public class CLI implements UI, StatusListener {
     }
 
     public void serverShutdown() {
-	System.out.println("Server was shut down!");
+	System.out.println("Server was shut down! Retrying connection...");
     }
 
     public void connectionLost() {
-	System.out.println("Lost connection to server!");
+	System.out.println("Lost connection to server! Retrying...");
+    }
+
+    public void connectionRegained(List<Song> songs) {
+	System.out.println("Connection regained!");
     }
 }

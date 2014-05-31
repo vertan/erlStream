@@ -9,4 +9,5 @@ public interface UpdateListener {
     public void songsUpdated(List<Song> newSongs);
     public void serverShutdown();
     public void connectionLost();
+    public void connectionRegained(List<Song> songs);
 }

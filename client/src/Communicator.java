@@ -12,13 +12,11 @@ import java.net.*;
  * @see UpdateListener
  */
 public class Communicator {
-    private class ListenThread implements Runnable {
-	private volatile boolean running = true;
-
+    private class ListenThread extends Thread {
 	public void run() {
 	    String data;
 	    
-	    while(running) {
+	    while(listening) {
 		try {
 		    data = fromServer.readLine();
 
@@ -27,7 +25,8 @@ public class Communicator {
 			for (UpdateListener observer : observers) {
 			    observer.connectionLost();
 			}
-			return;
+			retryConnection();
+			continue;
 		    }
 
 		    List<String> message = messageToList(data);
@@ -44,31 +43,39 @@ public class Communicator {
 			for (UpdateListener observer : observers) {
 			    observer.serverShutdown();
 			}
-			return;
+			retryConnection();
+			continue;
 		    default:
 			;
 		    }
 		} catch (IOException e) {
-		    // System.out.println("Error while reading from server!");
 		}
 	    }
 	}
 
-	public void stop() {
-	    running = false;
+	private void retryConnection() {
+	    while (!connected && listening) {
+		try {
+		    Thread.sleep(5000);
+		    List<Song> songs = setupConnection();
+		    for (UpdateListener observer : observers) {
+			observer.connectionRegained(songs);
+		    }
+		} catch (Exception e) {
+		}
+	    }
 	}
     }
 
     private String address;
     private int port;
-
     private Socket connection;
     private DataOutputStream toServer;
     private BufferedReader fromServer;
-
-    private ListenThread listener;
+    private Thread listenThread;
     private List<UpdateListener> observers;
-    
+
+    private volatile boolean listening;
     private volatile boolean connected = false;
 
     /**
@@ -85,9 +92,22 @@ public class Communicator {
     }
 
     /**
-     * Attempts to connect to the given server, and returns Song-object for each available song on the server.
+     * Attempts to connect to the given server and returns Song object for each available song on the server.
      */
     public List<Song> connect() throws UnknownHostException, IOException {
+	if (connected) disconnect();
+
+	List<Song> songs = setupConnection();
+	listenThread = new ListenThread();
+	listening = true;
+	listenThread.start(); // Hand the listening over to a separate thread
+	return songs;
+    }
+
+    /*
+     * Initializes the socket and streams and connects to the server.
+     */
+    private List<Song> setupConnection() throws UnknownHostException, IOException {
 	connection = new Socket(address, port);
 	toServer = new DataOutputStream(connection.getOutputStream());
 	fromServer = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -108,8 +128,6 @@ public class Communicator {
 
 	List<Song> songs = readSongs();
 	connected = true;
-	listener = new ListenThread();
-	new Thread(listener).start(); // Hand the listening over to a separate thread
 	return songs;
     }
 
@@ -204,21 +222,34 @@ public class Communicator {
      * Closes the connection to the server.
      */
     public void disconnect() {
-	if (listener != null) listener.stop();
-
 	try {
 	    toServer.writeBytes("disconnect\n");
-	    toServer.close();
-	} catch (IOException e) {
+	} catch (Exception e) {
 	}
-
+	
+	if (listenThread != null) {
+	    listening = false;
+	    try {
+		listenThread.interrupt(); // In case it's sleeping
+	    } catch (Exception e) {
+	    }
+	    try {
+		connection.close(); // To unblock listenThread in case it's reading
+	    } catch (Exception e) {
+	    }
+	    try {
+		listenThread.join();
+	    } catch (InterruptedException e) {
+	    }
+	}
+	
+	// In case listenThread opened a new connection
 	try {
 	    connection.close();
-	} catch (IOException e) {
-	    e.printStackTrace();
-	} catch (NullPointerException e) {
-	    // Should not happen?
+	} catch (Exception e) {
 	}
+
+	connected = false;
     }
 
     public void addUpdateListener(UpdateListener observer) {
