@@ -122,12 +122,11 @@ public class Communicator {
 
 	while((fileinfo = fromServer.readLine()) != null && !fileinfo.equals("end")) {
 	    String[] split = fileinfo.split(":");
-	    String name = split[0];
-	    String title = split[1];
-	    String artist = split[2];
-	    String album = split[3];
-	    int duration = Integer.parseInt(split[4]);
-	    songs.add(new Song(name, title, album, artist, duration));
+	    String title = split[0];
+	    String artist = split[1];
+	    String album = split[2];
+	    int duration = Integer.parseInt(split[3]);
+	    songs.add(new Song(title, album, artist, duration));
 	}
 
 	return songs;
@@ -146,7 +145,7 @@ public class Communicator {
 	DataOutputStream out = new DataOutputStream(temp.getOutputStream());
 	BufferedReader in = new BufferedReader(new InputStreamReader(temp.getInputStream()));
 
-	out.writeBytes("play:" + offset + ":" + song.getFileName() + "\n");
+	out.writeBytes("play:" + offset + ":" + song.getTitle() + "\n");
     
 	List<String> message = messageToList(in.readLine());
 	if (message.size() >= 2 && message.get(0).equals("play")) {

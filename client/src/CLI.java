@@ -260,19 +260,19 @@ public class CLI implements UI, StatusListener {
     private void printSongTable(List<Song> songs) {
 	String[] headers = {"Title", "Artist", "Album", "Duration"};
 
-	int longestFileName = headers[0].length();
+	int longestTitle = headers[0].length();
 	int longestArtist = headers[1].length();
 	int longestAlbum = headers[2].length();
 	int longestDuration = headers[3].length();
 	int longestIndex = String.valueOf(songs.size()).length() + 1;
 	
 	for (Song song : songs) {
-	    longestFileName = song.getFileName().length() > longestFileName ? song.getFileName().length() : longestFileName;
+	    longestTitle = song.getTitle().length() > longestTitle ? song.getTitle().length() : longestTitle;
 	    longestArtist = song.getArtist().length() > longestArtist ? song.getArtist().length() : longestArtist;
 	    longestAlbum = song.getAlbum().length() > longestAlbum ? song.getAlbum().length() : longestAlbum;
 	}
 
-	String format = "%-" + longestIndex + "s " + "%-" + longestFileName + "s   " + "%-" + 
+	String format = "%-" + longestIndex + "s " + "%-" + longestTitle + "s   " + "%-" + 
 	    longestArtist + "s   " + "%-" + longestAlbum + "s   " + "%" + longestDuration + "s";
 
 	String top = String.format(format, "", headers[0], headers[1], headers[2], headers[3]);
@@ -287,7 +287,7 @@ public class CLI implements UI, StatusListener {
 	System.out.println(line);
 	
 	for (int i = 0; i < songs.size(); i++) {
-	    System.out.printf(format + "\n", (i+1) + ".", songs.get(i).getFileName(), songs.get(i).getArtist(),
+	    System.out.printf(format + "\n", (i+1) + ".", songs.get(i).getTitle(), songs.get(i).getArtist(),
 			      songs.get(i).getAlbum(), songs.get(i).getDurationString());
 	}
 
@@ -431,7 +431,7 @@ public class CLI implements UI, StatusListener {
 	if (player.isPlaying() || player.isPaused()) {
 	    Song song = player.getCurrentSong();
 	    String state = player.isPlaying() ? "Playing" : "Paused";
-	    System.out.println("[" + state + "] \"" + song.getFileName() + "\" by " + song.getArtist());
+	    System.out.println("[" + state + "] \"" + song.getTitle() + "\" by " + song.getArtist());
 
 	    // Position bar
 	    int barLength = 40;

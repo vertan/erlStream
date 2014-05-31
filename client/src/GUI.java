@@ -309,7 +309,7 @@ try {
 
 try {
     for(int i = 0; i < songList.size() ; i++){
-        String title = songList.get(i).getFileName();
+        String title = songList.get(i).getTitle();
         String artist = songList.get(i).getArtist();
         String album = songList.get(i).getAlbum();
         String duration = songList.get(i).getDurationString();

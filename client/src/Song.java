@@ -4,33 +4,22 @@
  * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
  */
 public class Song {
-    private String filename, title, album, artist;
+    private String title, album, artist;
     private int duration;
 
     /**
      * Initializes a newly created Song object.
      *
-     * @param filename The filename of the song
      * @param title The title of the song
      * @param album The album of the song
      * @param artist The artist of the song
      * @param duration The duration of the song in seconds
      */
-    public Song(String filename, String title, String album, String artist, int duration) {
-	this.filename = filename;
+    public Song(String title, String album, String artist, int duration) {
 	this.title = title;
 	this.album = album;
 	this.artist = artist;
 	this.duration = duration;
-    }
-
-    /**
-     * Returns the filename of this song.
-     *
-     * @return The filename of this song
-     */
-    public String getFileName() {
-	return this.filename;
     }
 
     /**
@@ -103,7 +92,7 @@ public class Song {
      * @return The string representation of this song
      */
     public String toString() {
-	return this.filename;
+	return getTitle();
     }
     
     /**
@@ -112,8 +101,7 @@ public class Song {
      * @return true if this song is equal to song, false otherwise
      */
     public boolean equals(Song song) {
-	return (song.getFileName().equals(getFileName()) && song.getTitle().equals(getTitle()) &&
-		song.getAlbum().equals(getAlbum()) && song.getArtist().equals(getArtist()) &&
-		song.getDuration() == getDuration());
+	return (song.getTitle().equals(getTitle()) && song.getAlbum().equals(getAlbum())
+		&& song.getArtist().equals(getArtist()) && song.getDuration() == getDuration());
     }
 }

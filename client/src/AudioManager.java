@@ -85,7 +85,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
      */
     public void play(Song song, int offset) throws BadSongException, UnknownHostException, IOException, PlaybackFailedException {
 	if (!exists(song)) {
-	    throw new BadSongException(song.getFileName());
+	    throw new BadSongException(song.getTitle());
 	}
 
 	this.offset = offset;
@@ -153,7 +153,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
      */
     public Song getSongByTitle(String title) {
 	for (Song song : songs) {
-	    if (song.getFileName().equals(title)) return song;
+	    if (song.getTitle().equals(title)) return song;
 	}
 
 	return null;
@@ -427,7 +427,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
 
     private class TitleComparator implements Comparator<Song> {
 	public int compare(Song a, Song b) {
-	    return a.getFileName().toLowerCase().compareTo(b.getFileName().toLowerCase());
+	    return a.getTitle().toLowerCase().compareTo(b.getTitle().toLowerCase());
 	}
     }
 

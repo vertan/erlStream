@@ -103,10 +103,10 @@ connect(Socket, []) ->
 connect(Socket, [Name|_]) ->
     client_manager:connect(Socket, Name),
     Songs = database:list(),
-    SongTitles = [Song#song.filename ++ ":" ++ Song#song.title ++ ":" ++ Song#song.artist ++ ":"
+    SongInfo = [Song#song.title ++ ":" ++ Song#song.artist ++ ":"
 		  ++ Song#song.album ++ ":" ++ integer_to_list(Song#song.duration) ++ "\n" || Song <- Songs],
-    SongTitlesApp = lists:append(SongTitles),
-    gen_tcp:send(Socket, "connect:ok\n" ++  SongTitlesApp ++ "end\n").
+    SongInfoApp = lists:append(SongInfo),
+    gen_tcp:send(Socket, "connect:ok\n" ++  SongInfoApp ++ "end\n").
 
 handle_client(Socket) ->
     case gen_tcp:recv(Socket, 0) of
@@ -124,9 +124,9 @@ handle_client(Socket) ->
 
 play(Socket, Arguments) ->
     [Offset|File] = Arguments,
-    Filename = string:join(File, " "),
+    Title = string:join(File, " "),
     {StartMS, _StartRest} = string:to_integer(Offset),
-    case database:play(Filename, StartMS) of
+    case database:play(Title, StartMS) of
 	{ok, Data} ->
 	    gen_tcp:send(Socket, "play:ok\n" ++ Data),
 	    gen_tcp:close(Socket);

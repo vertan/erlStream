@@ -27,17 +27,17 @@ list() ->
 get_directory() ->
     gen_server:call(?MODULE, get_directory).
 
-exists(Filename) ->
-    gen_server:call(?MODULE, {exists, Filename}).
+exists(Title) ->
+    gen_server:call(?MODULE, {exists, Title}).
 
 stop() ->
     gen_server:cast(?MODULE, stop).
 
 %% Not executed by the atual server, for performance reasons.
-play(Filename, Offset) ->
-    case exists(Filename) of
+play(Title, Offset) ->
+    case exists(Title) of
 	true ->
-	    FilePath = get_directory() ++ "/" ++ Filename ++ ".mp3",
+	    FilePath = get_directory() ++ "/" ++ Title ++ ".mp3",
 	    Bitrate = 192000 div 8,
 	    BitrateMS = Bitrate / 1000,
 	    StartOffset = round(Offset * BitrateMS),
@@ -67,8 +67,8 @@ handle_call(list, _From, State = #state{songs=Songs}) ->
     {reply, Songs, State};
 handle_call(get_directory, _From, State = #state{directory=Directory}) ->
     {reply, Directory, State};
-handle_call({exists, Filename}, _From, State = #state{songs=Songs}) ->
-    Reply = case lists:filter(fun(Song) -> Song#song.filename =:= Filename end, Songs) of
+handle_call({exists, Title}, _From, State = #state{songs=Songs}) ->
+    Reply = case lists:filter(fun(Song) -> Song#song.title =:= Title end, Songs) of
 		[] ->
 		    false;
 		_ ->
@@ -78,10 +78,10 @@ handle_call({exists, Filename}, _From, State = #state{songs=Songs}) ->
 
 handle_cast({update, UpdatedSongs}, State) ->
     io:format("~s Database updated, notifying clients...~n", [utils:timestamp()]),
-    SongTitles = [Song#song.filename ++ ":" ++ Song#song.title ++ ":" ++ Song#song.artist ++ ":"
+    SongInfo = [Song#song.title ++ ":" ++ Song#song.artist ++ ":"
 		  ++ Song#song.album ++ ":" ++ integer_to_list(Song#song.duration) ++ "\n" || Song <- UpdatedSongs],
-    SongTitlesApp = lists:append(SongTitles),
-    client_manager:broadcast("update:\n" ++ SongTitlesApp ++ "end"),
+    SongInfoApp = lists:append(SongInfo),
+    client_manager:broadcast("update:\n" ++ SongInfoApp ++ "end"),
     {noreply, State#state{songs=UpdatedSongs}};
 handle_cast(stop, State) ->
     {stop, normal, State}.
@@ -132,10 +132,10 @@ load(Directory, [Filename|Rest], Songs) ->
     FilePath = Directory ++ "/" ++ Filename,
     case get_tags(FilePath) of
 	{ok, Tags} ->
-	    {Title, Artist, Album, _Year} = Tags,
+	    {_Title, Artist, Album, _Year} = Tags,
 	    Duration = get_duration(FilePath),
 	    [Basename|_] = string:tokens(Filename, "."),
-	    Song = #song{filename=Basename, title=Title, artist=Artist, album=Album, duration=Duration},
+	    Song = #song{title=Basename, artist=Artist, album=Album, duration=Duration},
 	    UpdatedSongs = [Song|Songs];
 	{error, _Reason} ->
 	    UpdatedSongs = Songs

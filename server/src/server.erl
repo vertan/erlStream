@@ -51,7 +51,7 @@ clients() ->
 	    io:format("~n")
     end.
 
-%% @doc Returns a string with the filenames of the available songs on the server.
+%% @doc Returns a string with the titles of the available songs on the server.
 %%
 %% === Example ===
 %%<div class="example">'''
@@ -62,7 +62,7 @@ clients() ->
 list() ->
     Songs = gen_server:call(?MODULE, list),
     io:format("~p song(s):~n~n", [length(Songs)]),
-    [io:format("~s~n", [Song#song.filename]) || Song <- Songs],
+    [io:format("~s~n", [Song#song.title]) || Song <- Songs],
     io:format("~n").
 
 %% @doc Stops the server.
