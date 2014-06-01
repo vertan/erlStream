@@ -15,21 +15,25 @@ public class Communicator {
     private class ListenThread extends Thread {
 	public void run() {
 	    String data;
+	    List<String> message;
 	    
 	    while(listening) {
 		try {
 		    data = fromServer.readLine();
 
 		    if (data == null) {
-			connected = false;
-			for (UpdateListener observer : observers) {
-			    observer.connectionLost();
+			if (listening) { // If not listening, disconnect has been called
+			    connected = false;
+			    for (UpdateListener observer : observers) {
+				observer.connectionLost();
+			    }
+			    fromServer.close();
+			    retryConnection();
 			}
-			retryConnection();
 			continue;
 		    }
 
-		    List<String> message = messageToList(data);
+		    message = messageToList(data);
 
 		    switch(message.get(0)) {
 		    case "update":
@@ -43,6 +47,7 @@ public class Communicator {
 			for (UpdateListener observer : observers) {
 			    observer.serverShutdown();
 			}
+			fromServer.close();
 			retryConnection();
 			continue;
 		    default:
