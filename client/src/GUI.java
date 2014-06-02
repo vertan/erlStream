@@ -307,7 +307,7 @@ playing = new JLabel("Playing: ", SwingConstants.CENTER);
         //playing.setBorder(BorderFactory.createLineBorder(BLACK,1));
 currentSong = new JLabel("");
 
-status = new JLabel("Connected.");
+status = new JLabel("Connected to " + manager.getAddress() + ":" + manager.getPort() + ".");
 
 Font font = new Font("Verdana", Font.PLAIN, 12);
 font.deriveFont(font.getStyle() & ~Font.BOLD);
@@ -451,7 +451,7 @@ public void updateAll(){
 
     public void connectionRegained(List<Song> songs) {
 	updateSongTable(songs);
-	status.setText("Connected.");
+	status.setText("Connected to " + manager.getAddress() + ":" + manager.getPort() + ".");
 	status.setForeground(null);
     }
 }
