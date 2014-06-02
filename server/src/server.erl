@@ -2,16 +2,12 @@
 %% @doc Entry point to the server
 
 -module(server).
--behavior(gen_server).
 
 -export([start/0, start_cli/0, clients/0, list/0, stop/0]).
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("song.hrl").
 -include("client.hrl").
-
--record(state, {}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                    API                                    %%
@@ -23,10 +19,27 @@
 %%<div class="example">'''
 %%'''
 %%</div>
--spec start() -> {ok, pid()}.
+-spec start() -> ok.
 
 start() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+    process_flag(trap_exit, true),
+
+    Port = 1340,
+    UpdateInterval = 10000,
+
+    io:format("Starting database... "),
+    database:start("../files", UpdateInterval),
+    io:format("~w songs loaded!~n", [length(database:list())]),
+
+    io:format("Starting client manager... "),
+    client_manager:start(),
+    io:format("ok!~n"),
+
+    io:format("Starting listener... "),
+    listener:start(Port),
+    io:format("ok!~n"),
+
+    io:format("Server started!~n").
 
 %% @doc Starts the server along with a command line interface.
 %%
@@ -37,12 +50,19 @@ start() ->
 -spec start_cli() -> ok.
 
 start_cli() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []),
+    start(),
     cli_start().
 
-%% Prints a list of the connected clients.
+%% @doc Prints a list of the connected clients.
+%%
+%% === Example ===
+%%<div class="example">'''
+%%'''
+%%</div>
+-spec clients() -> ok.
+
 clients() ->
-    case gen_server:call(?MODULE, clients) of
+    case client_manager:list() of
 	[] ->
 	    io:format("No clients connected.~n");
 	Clients ->
@@ -51,7 +71,7 @@ clients() ->
 	    io:format("~n")
     end.
 
-%% @doc Returns a string with the titles of the available songs on the server.
+%% @doc Prints a list of the available songs on the server.
 %%
 %% === Example ===
 %%<div class="example">'''
@@ -60,10 +80,14 @@ clients() ->
 -spec list() -> ok.
 
 list() ->
-    Songs = gen_server:call(?MODULE, list),
-    io:format("~p song(s):~n~n", [length(Songs)]),
-    [io:format("~s~n", [Song#song.title]) || Song <- Songs],
-    io:format("~n").
+    case database:list() of
+	[] ->
+	    io:format("No songs available.~n");
+	Songs ->
+	    io:format("~p song(s):~n~n", [length(Songs)]),
+	    [io:format("~s~n", [Song#song.title]) || Song <- Songs],
+	    io:format("~n")
+    end.
 
 %% @doc Stops the server.
 %%
@@ -75,76 +99,16 @@ list() ->
  
 stop() ->
     io:format("Stopping server... "),
-    gen_server:cast(?MODULE, stop),
-    io:format("server stopped.~n").
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                             Server functions                              %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-init([]) ->
-    process_flag(trap_exit, true),
-
-    Port = 1340,
-
-    %% TODO: Check for fails
-    io:format("Starting database... "),
-    database:start("../files", 10000),
-    io:format("~w songs loaded!~n", [length(database:list())]),
-
-    io:format("Starting client manager... "),
-    client_manager:start(),
-    io:format("ok!~n"),
-
-    io:format("Starting listener... "),
-    listener:start(Port),
-    io:format("ok!~n"),
-
-    io:format("Server started!~n"),
-    {ok, #state{}}.
-
-handle_call(clients, _From, State) ->
-    Clients = client_manager:list(),
-    {reply, Clients, State};
-handle_call(list, _From, State) ->
-    Songs = database:list(),
-    {reply, Songs, State};
-handle_call(refresh, _From, State) ->
-    database:refresh(),
-    Songs = database:list(),
-    {reply, Songs, State}.
-
-handle_cast(stop, State) ->
     client_manager:broadcast("exit:Shutdown"),
-    {stop, normal, State}.
-
-handle_info(Info, State) ->
-    io:format("Server: Unexpected message: ~p~n", [Info]),
-    {noreply, State}.
-
-terminate(normal, _State) ->
-    ok;
-terminate(shutdown, _State) ->
-    ok;
-terminate(_Reason, _State) ->
-    ok.
-
-code_change(_OldVersion, State, _Extra) ->
-    {ok, State}.
+    listener:stop(),
+    client_manager:stop(),
+    database:stop(),
+    io:format("server stopped.~n").
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%			             CLI                                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% @doc Starts the command line interface.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
--spec cli_start() -> ok.
 
 cli_start() ->
     io:format("~n"),
@@ -153,14 +117,6 @@ cli_start() ->
     io:format("##########################~n"),    
     print_help(),
     cli().
-
-%% @doc Prints the available commands.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
--spec print_help() -> ok.
 
 print_help() ->
     io:format("~n"),
@@ -172,14 +128,6 @@ print_help() ->
     io:format("stop \t\tStop the server~n"),
     io:format("~n").
 
-%% @doc Parses user input and interacts with the server.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
--spec cli() -> ok.
- 
 cli() ->
     case io:get_line("> ") of
 	"clients\n" ->
