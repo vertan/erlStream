@@ -5,9 +5,12 @@ import javax.swing.event.*;
 import java.awt.*;
 import static java.awt.Color.*;
 import java.awt.event.*;
+import javax.swing.table.TableRowSorter;
 
 
 public class GUI implements UI, StatusListener {
+
+ 
 
     private class Update implements Runnable{
         @Override
@@ -107,9 +110,9 @@ public class GUI implements UI, StatusListener {
         }
     }	
 }
-
+private TableModel model;
+private TableRowSorter<TableModel> sorter;
 private AudioManager manager;
-
 private JButton playButton;
 private JButton nextButton;
 private JButton previousButton;
@@ -127,7 +130,7 @@ private boolean playButt = true;
 private boolean GUIchange = false;
 private boolean shuffelBool = true;
 private boolean repeatBool = true;
-
+private int sortMode;
 
 
 public GUI(){
@@ -141,6 +144,7 @@ public void start() {
 }
 
 public void launchGUI() {
+    sortMode = 0;
     JFrame frame = new JFrame("erlStream");
     frame.setSize(800,600);
     frame.setResizable(false);
@@ -297,18 +301,12 @@ toggleRepeat.addMouseListener(new MouseAdapter(){
     }
 });
 
-        //playing Labels
+
 playing = new JLabel("Playing: ", SwingConstants.CENTER);
-        //playing.setBorder(BorderFactory.createLineBorder(BLACK,1));
 currentSong = new JLabel("");
 
-       //songList
-try {
     songList = manager.getSongs();
     data = new Object[songList.size()][songList.size()];
-} catch (Exception ex) {}
-
-try {
     for(int i = 0; i < songList.size() ; i++){
         String title = songList.get(i).getTitle();
         String artist = songList.get(i).getArtist();
@@ -317,9 +315,8 @@ try {
         Object[] listElement = {title,artist,album,duration};
         data[i] = listElement;
     }
-} catch (Exception ex) {System.out.println("Loading song failed");}
-
-songTable = new JTable(new TableModel(data));
+model = new TableModel(data);
+songTable = new JTable(model);
 
 songTable.setSelectionBackground(MAGENTA);
 songTable.setBorder(BorderFactory.createLineBorder(BLACK, 1));
@@ -335,24 +332,79 @@ songTable.getColumnModel().getColumn(1).setPreferredWidth(180);
 songTable.getColumnModel().getColumn(2).setPreferredWidth(150);
 songTable.getColumnModel().getColumn(3).setPreferredWidth(60);
 songTable.setFocusable(false);
+//songTable.setAutoCreateRowSorter(true);
 
 songTable.addMouseListener(new MouseAdapter() {
     @Override
     public void mousePressed(MouseEvent e) {
         JTable target = (JTable)e.getSource();
         Point p = e.getPoint();
+        if (target.getTableHeader().contains(p)){
+            String colName = target.getColumnName(target.columnAtPoint(p));
+            System.out.println(colName);
+            switch(colName){
+                case "Title":   
+                    switch(sortMode) {
+                        case 0:{
+                            manager.sort(1);
+                            sortMode = 1;
+                            break;}
+                        default:{
+                            manager.sort(0);
+                            sortMode = 0;                
+                            break;}
+                    }
+                case "Artist":
+                    switch(sortMode) {
+                        case 2:{
+                            manager.sort(3);
+                            sortMode = 3;
+                            break;}
+                        default:{
+                            manager.sort(2);
+                            sortMode = 2;                
+                            break;}
+                    }
+                case "Album":
+                    switch(sortMode) {
+                        case 4:{
+                            manager.sort(5);
+                            sortMode = 5;
+                            break;}
+                        default:{
+                            manager.sort(4);
+                            sortMode = 4;                
+                            break;}
+                    }
+                case "Duration":
+                    switch(sortMode) {
+                        case 6:{
+                            manager.sort(7);
+                            sortMode = 7;
+                            break;}
+                        default:{
+                            manager.sort(6);
+                            sortMode = 6;                
+                            break;}
+                    }
+                default:{
+                    manager.sort(0);
+                    sortMode = 0;
+                    break;}
+            }
+        }
         if (target.getSelectedRow() == -1 || target.rowAtPoint(p) != target.getSelectedRow()){
-           target.clearSelection();                           
-       }
-       if (e.getClickCount() == 2) {
-        Integer row = target.getSelectedRow();
-        Object title = target.getValueAt(row,0);
-        try {
-            manager.playSongByTitle(title.toString(),0);
-            playButt = false;
-	    playButton.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pause.png")));
-            target.clearSelection();
-        } catch (Exception ex) {System.out.println("List Click failed!");}
+            target.clearSelection();                           
+        }
+        if (e.getClickCount() == 2) {
+            Integer row = target.getSelectedRow();
+            Object title = target.getValueAt(row,0);
+            try {
+                manager.playSongByTitle(title.toString(),0);
+                playButt = false;
+                playButton.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("pause.png")));
+                target.clearSelection();
+            } catch (Exception ex) {System.out.println("List Click failed!");}
     }
 }
 });        
