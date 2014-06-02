@@ -1,6 +1,7 @@
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.event.*;
 import java.awt.*;
 import static java.awt.Color.*;
@@ -171,6 +172,9 @@ public void launchGUI() {
     ((FlowLayout)nowPlaying.getLayout()).setHgap(0);
 
     JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    ((FlowLayout)statusPanel.getLayout()).setVgap(0);
+    ((FlowLayout)statusPanel.getLayout()).setHgap(0);
+    statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
 
     Thread update = new Thread(new Update());
     update.start();
@@ -304,6 +308,10 @@ playing = new JLabel("Playing: ", SwingConstants.CENTER);
 currentSong = new JLabel("");
 
 status = new JLabel("Connected.");
+
+Font font = new Font("Verdana", Font.PLAIN, 12);
+font.deriveFont(font.getStyle() & ~Font.BOLD);
+status.setFont(font);
 
        //songList
 try {
