@@ -120,6 +120,7 @@ private JSlider timeline;
 private JLabel songTime;
 private JLabel curentTime;
 private JLabel playing;
+    private JLabel status;
 private JLabel currentSong;
 Object[][] data;
 private List<Song> songList;
@@ -169,7 +170,7 @@ public void launchGUI() {
     ((FlowLayout)nowPlaying.getLayout()).setVgap(0);
     ((FlowLayout)nowPlaying.getLayout()).setHgap(0);
 
-
+    JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
     Thread update = new Thread(new Update());
     update.start();
@@ -302,6 +303,8 @@ playing = new JLabel("Playing: ", SwingConstants.CENTER);
         //playing.setBorder(BorderFactory.createLineBorder(BLACK,1));
 currentSong = new JLabel("");
 
+status = new JLabel("Connected.");
+
        //songList
 try {
     songList = manager.getSongs();
@@ -365,6 +368,8 @@ panelBot.add(playButton);
 panelBot.add(nextButton);
 panelBot.add(toggleShuffle);
 
+statusPanel.add(status);
+
 timelinePanel.add(curentTime);
 timelinePanel.add(timeline);
 timelinePanel.add(songTime);
@@ -386,6 +391,7 @@ panelTop.setPreferredSize(new Dimension(530,450));
 
 mainPanel.add(panelTop);
 mainPanel.add(panelBot);
+mainPanel.add(statusPanel);
 mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.Y_AXIS));
 
 frame.add(mainPanel);   
@@ -426,14 +432,18 @@ public void updateAll(){
     }
 
     public void serverShutdown() {
-	System.out.println("Server was shut down! Retrying connection...");
+	status.setText("Server was shut down! Retrying...");
+	status.setForeground(Color.RED);
     }
 
     public void connectionLost() {
-	System.out.println("Lost connection to server! Retrying...");
+	status.setText("Lost connection to server! Retrying...");
+	status.setForeground(Color.RED);
     }
 
     public void connectionRegained(List<Song> songs) {
-	System.out.println("Connection regained!");
+	updateSongTable(songs);
+	status.setText("Connected.");
+	status.setForeground(null);
     }
 }
