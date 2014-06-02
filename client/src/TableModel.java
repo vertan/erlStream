@@ -47,7 +47,10 @@ public class TableModel extends AbstractTableModel {
         data[row][col] = value;
         fireTableCellUpdated(row, col);
     }
-
-
-};  
+    
+    public void fill(Object[][] data) {
+	this.data = data;
+	fireTableDataChanged();
+    }
+}
 

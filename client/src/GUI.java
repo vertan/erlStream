@@ -408,8 +408,21 @@ public void updateAll(){
     }catch(Exception c) {}
 }
     
+    private void updateSongTable(List<Song> songs) {
+	Song song;
+
+	data = new Object[songs.size()][songs.size()];
+	for(int i = 0; i < songs.size(); i++) {
+	    song = songs.get(i);
+	    Object[] element = {song.getTitle(), song.getArtist(), song.getAlbum(), song.getDurationString()};
+	    data[i] = element;
+	}
+
+	((TableModel) songTable.getModel()).fill(data);
+    }
+
     public void songsUpdated(List<Song> newSongs) {
-	System.out.println("New songlist available!");
+	updateSongTable(newSongs);
     }
 
     public void serverShutdown() {
