@@ -7,7 +7,7 @@ import static java.awt.Color.*;
 import java.awt.event.*;
 
 
-public class GUI implements UI {
+public class GUI implements UI, StatusListener {
 
     private class Update implements Runnable{
         @Override
@@ -40,7 +40,7 @@ public class GUI implements UI {
 
         public void init() throws Exception{
 
-            popFrame = new JFrame("Popup");
+            popFrame = new JFrame("erlStream");
             popFrame.setResizable(false);
             popFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -54,8 +54,8 @@ public class GUI implements UI {
             inPort = new JTextField("1340",7);
 
             inPortLabel = new JLabel("Port:");
-            inAdressLabel = new JLabel("Adress:");
-            faildLabel = new JLabel("Choose the server to conect to!");
+            inAdressLabel = new JLabel("Address:");
+            faildLabel = new JLabel("Choose the server to connect to!");
             faildLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 10));
 
             popMain.add(faildLabel);
@@ -81,6 +81,7 @@ public class GUI implements UI {
                    port = Integer.parseInt(inPort.getText());
                    try {
                     manager = new AudioManager(adress, port);
+		    manager.addStatusListener(GUI.this);
                     launchGUI();
                     popFrame.setVisible(false);
                     popFrame.dispose();
@@ -406,4 +407,20 @@ public void updateAll(){
 
     }catch(Exception c) {}
 }
+    
+    public void songsUpdated(List<Song> newSongs) {
+	System.out.println("New songlist available!");
+    }
+
+    public void serverShutdown() {
+	System.out.println("Server was shut down! Retrying connection...");
+    }
+
+    public void connectionLost() {
+	System.out.println("Lost connection to server! Retrying...");
+    }
+
+    public void connectionRegained(List<Song> songs) {
+	System.out.println("Connection regained!");
+    }
 }
