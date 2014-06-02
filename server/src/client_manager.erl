@@ -56,7 +56,7 @@ handle_cast({disconnect, Socket}, State = #state{clients=Clients}) ->
     UpdatedClients = lists:delete(Client, Clients),
     {noreply, State#state{clients=UpdatedClients}};
 handle_cast({broadcast, Message}, State = #state{clients=Clients}) ->
-    lists:foreach(fun(Client) -> gen_tcp:send(Client#client.socket, Message ++ "\n") end, Clients),
+    [gen_tcp:send(Client#client.socket, Message ++ "\n") || Client <- Clients],
     {noreply, State};
 handle_cast(stop, State) ->
     {stop, normal, State}.
