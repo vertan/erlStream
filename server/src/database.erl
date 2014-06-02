@@ -42,9 +42,11 @@ play(Title, Offset) ->
 	    BitrateMS = Bitrate / 1000,
 	    StartOffset = round(Offset * BitrateMS),
 	    case file:read_file(FilePath) of
-		{ok, Binary} ->
+		{ok, Binary} when byte_size(Binary) >= StartOffset ->
 		    <<_OffsetChunk:StartOffset/binary, RestChunk/bitstring>> = Binary,
 		    {ok, RestChunk};
+		{ok, _Binary} ->
+		    {error, offset_too_high};
 		{error, _Reason} ->
 		    {error, read_failed}
 	    end;

@@ -131,6 +131,9 @@ play(Socket, Arguments) ->
 	{ok, Data} ->
 	    gen_tcp:send(Socket, "play:ok\n" ++ Data),
 	    gen_tcp:close(Socket);
+	{error, offset_too_high} ->
+	    gen_tcp:send(Socket, "play:error:Offset too high\n"),
+	    gen_tcp:close(Socket);
 	{error, read_failed} ->
 	    gen_tcp:send(Socket, "play:error:Read failed on server side\n"),
 	    gen_tcp:close(Socket);
