@@ -234,10 +234,9 @@ public class Communicator {
 	
 	if (listenThread != null) {
 	    listening = false;
-	    try {
-		listenThread.interrupt(); // In case it's sleeping
-	    } catch (Exception e) {
-	    }
+	    
+	    listenThread.interrupt(); // In case it's sleeping
+	    
 	    try {
 		fromServer.close(); // To unblock listenThread in case it's reading
 	    } catch (Exception e) {
