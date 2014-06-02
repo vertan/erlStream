@@ -90,7 +90,8 @@ handle_info(Info, State) ->
     io:format("Database: Unexpected message: ~p~n", [Info]),
     {noreply, State}.
 
-terminate(normal, _State) ->
+terminate(normal, #state{updater=Updater}) ->
+    exit(Updater, normal),
     ok;
 terminate(shutdown, _State) ->
     ok;
