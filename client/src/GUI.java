@@ -160,6 +160,7 @@ public void launchGUI() {
     JPanel panelBot = new JPanel();
     ((FlowLayout)panelBot.getLayout()).setVgap(0);
     ((FlowLayout)panelBot.getLayout()).setHgap(0);
+    panelBot.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
     JPanel panelTop = new JPanel();
     ((FlowLayout)panelTop.getLayout()).setVgap(0);
