@@ -1,6 +1,7 @@
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.event.*;
 import java.awt.*;
 import static java.awt.Color.*;
@@ -175,6 +176,9 @@ public void launchGUI() {
     ((FlowLayout)nowPlaying.getLayout()).setHgap(0);
 
     JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    ((FlowLayout)statusPanel.getLayout()).setVgap(0);
+    ((FlowLayout)statusPanel.getLayout()).setHgap(0);
+    statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
 
     Thread update = new Thread(new Update());
     update.start();
@@ -306,6 +310,14 @@ toggleRepeat.addMouseListener(new MouseAdapter(){
 playing = new JLabel("Playing: ", SwingConstants.CENTER);
 currentSong = new JLabel("");
 status = new JLabel("Connected.");
+
+
+status = new JLabel("Connected to " + manager.getAddress() + ":" + manager.getPort() + ".");
+
+Font font = new Font("Verdana", Font.PLAIN, 12);
+font.deriveFont(font.getStyle() & ~Font.BOLD);
+status.setFont(font);
+
 
        //songList
 
@@ -512,7 +524,7 @@ public void updateAll(){
 
     public void connectionRegained(List<Song> songs) {
 	updateSongTable(songs);
-	status.setText("Connected.");
+	status.setText("Connected to " + manager.getAddress() + ":" + manager.getPort() + ".");
 	status.setForeground(null);
     }
 }
