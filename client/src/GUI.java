@@ -123,6 +123,7 @@ private JSlider timeline;
 private JLabel songTime;
 private JLabel curentTime;
 private JLabel playing;
+    private JLabel status;
 private JLabel currentSong;
 Object[][] data;
 private List<Song> songList;
@@ -130,7 +131,7 @@ private boolean playButt = true;
 private boolean GUIchange = false;
 private boolean shuffelBool = true;
 private boolean repeatBool = true;
-private int sortMode;
+private static int sortMode = 0;
 
 
 public GUI(){
@@ -144,7 +145,7 @@ public void start() {
 }
 
 public void launchGUI() {
-    sortMode = 0;
+    
     JFrame frame = new JFrame("erlStream");
     frame.setSize(800,600);
     frame.setResizable(false);
@@ -173,7 +174,7 @@ public void launchGUI() {
     ((FlowLayout)nowPlaying.getLayout()).setVgap(0);
     ((FlowLayout)nowPlaying.getLayout()).setHgap(0);
 
-
+    JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
     Thread update = new Thread(new Update());
     update.start();
@@ -304,6 +305,9 @@ toggleRepeat.addMouseListener(new MouseAdapter(){
 
 playing = new JLabel("Playing: ", SwingConstants.CENTER);
 currentSong = new JLabel("");
+status = new JLabel("Connected.");
+
+       //songList
 
     songList = manager.getSongs();
     data = new Object[songList.size()][songList.size()];
@@ -315,8 +319,7 @@ currentSong = new JLabel("");
         Object[] listElement = {title,artist,album,duration};
         data[i] = listElement;
     }
-model = new TableModel(data);
-songTable = new JTable(model);
+songTable = new JTable(new TableModel(data));
 
 songTable.setSelectionBackground(MAGENTA);
 songTable.setBorder(BorderFactory.createLineBorder(BLACK, 1));
@@ -332,67 +335,84 @@ songTable.getColumnModel().getColumn(1).setPreferredWidth(180);
 songTable.getColumnModel().getColumn(2).setPreferredWidth(150);
 songTable.getColumnModel().getColumn(3).setPreferredWidth(60);
 songTable.setFocusable(false);
-//songTable.setAutoCreateRowSorter(true);
+songTable.setAutoCreateRowSorter(true);
+
+songTable.getTableHeader().addMouseListener(new MouseAdapter(){
+    @Override
+    public void mouseClicked(MouseEvent e){
+        int col = songTable.columnAtPoint(e.getPoint());
+        String colName = songTable.getColumnName(col);
+        System.out.println(colName +": "+ Integer.toString(sortMode));
+            switch(colName){
+                case "Title":   
+                    switch(sortMode) {
+                        case 0:
+                            manager.sort(1);
+                            sortMode = 1;
+                            break;
+                        default:
+                            manager.sort(0);
+                            sortMode = 0;
+                            System.out.println("0");
+                            break;
+                    }
+                    break;
+                case "Artist":
+                    switch(sortMode) {
+                        case 2:
+                            sortMode = 3;
+                            manager.sort(3);                            
+                            break;
+                        default:
+                            System.out.println("2");
+                            sortMode = 2;       
+                            manager.sort(2);                                     
+                            break;
+                    }
+                    break;
+                case "Album":
+                    switch(sortMode) {
+                        case 4:
+                            sortMode = 5;
+                            manager.sort(5);
+                            break;
+                        default:
+                            sortMode = 4;  
+                            manager.sort(4);
+                            System.out.println("4");
+                            break;
+                    }
+                    break;
+                case "Duration":
+                    switch(sortMode) {
+                        case 6:
+                            sortMode = 7;
+                            manager.sort(7);
+                            System.out.println("7");
+                            break;
+                        default:
+                            sortMode = 6;   
+                            manager.sort(6);
+                            System.out.println("6");
+                            break;
+                    }
+                    break;
+                default:
+                    //sortMode = 0;
+                    //manager.sort(0);
+                    break;
+            }
+            System.out.println(Integer.toString(sortMode));
+        }
+    
+    });
 
 songTable.addMouseListener(new MouseAdapter() {
     @Override
     public void mousePressed(MouseEvent e) {
         JTable target = (JTable)e.getSource();
         Point p = e.getPoint();
-        if (target.getTableHeader().contains(p)){
-            String colName = target.getColumnName(target.columnAtPoint(p));
-            System.out.println(colName);
-            switch(colName){
-                case "Title":   
-                    switch(sortMode) {
-                        case 0:{
-                            manager.sort(1);
-                            sortMode = 1;
-                            break;}
-                        default:{
-                            manager.sort(0);
-                            sortMode = 0;                
-                            break;}
-                    }
-                case "Artist":
-                    switch(sortMode) {
-                        case 2:{
-                            manager.sort(3);
-                            sortMode = 3;
-                            break;}
-                        default:{
-                            manager.sort(2);
-                            sortMode = 2;                
-                            break;}
-                    }
-                case "Album":
-                    switch(sortMode) {
-                        case 4:{
-                            manager.sort(5);
-                            sortMode = 5;
-                            break;}
-                        default:{
-                            manager.sort(4);
-                            sortMode = 4;                
-                            break;}
-                    }
-                case "Duration":
-                    switch(sortMode) {
-                        case 6:{
-                            manager.sort(7);
-                            sortMode = 7;
-                            break;}
-                        default:{
-                            manager.sort(6);
-                            sortMode = 6;                
-                            break;}
-                    }
-                default:{
-                    manager.sort(0);
-                    sortMode = 0;
-                    break;}
-            }
-        }
+
         if (target.getSelectedRow() == -1 || target.rowAtPoint(p) != target.getSelectedRow()){
             target.clearSelection();                           
         }
@@ -417,6 +437,8 @@ panelBot.add(playButton);
 panelBot.add(nextButton);
 panelBot.add(toggleShuffle);
 
+statusPanel.add(status);
+
 timelinePanel.add(curentTime);
 timelinePanel.add(timeline);
 timelinePanel.add(songTime);
@@ -438,6 +460,7 @@ panelTop.setPreferredSize(new Dimension(530,450));
 
 mainPanel.add(panelTop);
 mainPanel.add(panelBot);
+mainPanel.add(statusPanel);
 mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.Y_AXIS));
 
 frame.add(mainPanel);   
@@ -459,20 +482,37 @@ public void updateAll(){
 
     }catch(Exception c) {}
 }
-    
+
+    private void updateSongTable(List<Song> songs) {
+	Song song;
+
+	data = new Object[songs.size()][songs.size()];
+	for(int i = 0; i < songs.size(); i++) {
+	    song = songs.get(i);
+	    Object[] element = {song.getTitle(), song.getArtist(), song.getAlbum(), song.getDurationString()};
+	    data[i] = element;
+	}
+
+	((TableModel) songTable.getModel()).fill(data);
+    }
+
     public void songsUpdated(List<Song> newSongs) {
-	System.out.println("New songlist available!");
+	updateSongTable(newSongs);
     }
 
     public void serverShutdown() {
-	System.out.println("Server was shut down! Retrying connection...");
+	status.setText("Server was shut down! Retrying...");
+	status.setForeground(Color.RED);
     }
 
     public void connectionLost() {
-	System.out.println("Lost connection to server! Retrying...");
+	status.setText("Lost connection to server! Retrying...");
+	status.setForeground(Color.RED);
     }
 
     public void connectionRegained(List<Song> songs) {
-	System.out.println("Connection regained!");
+	updateSongTable(songs);
+	status.setText("Connected.");
+	status.setForeground(null);
     }
 }
