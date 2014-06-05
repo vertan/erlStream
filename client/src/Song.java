@@ -1,7 +1,11 @@
 /**
- * The Song class represents meta data about a song.
+ * The Song class is used to store meta data about a song.
  *
- * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+ * @author Jeanette Castillo <jeanette.cas@hotmail.com>
+ * @author Filip Hedman <hedman.filip@gmail.com>
+ * @author Robert Kallgren <robertkallgren@gmail.com>
+ * @author Oscar Mangard <oscarmangard@gmail.com>
+ * @author Mikael Sernheim <mikael.sernheim@gmail.com>
  */
 public class Song {
     private String title, album, artist;
@@ -10,10 +14,10 @@ public class Song {
     /**
      * Initializes a newly created Song object.
      *
-     * @param title The title of the song
-     * @param album The album of the song
-     * @param artist The artist of the song
-     * @param duration The duration of the song in seconds
+     * @param title the title of the song
+     * @param album the album of the song
+     * @param artist the artist of the song
+     * @param duration the duration of the song in seconds
      */
     public Song(String title, String album, String artist, int duration) {
 	this.title = title;
@@ -25,7 +29,7 @@ public class Song {
     /**
      * Returns the title of this song.
      *
-     * @return The title of this song
+     * @return the title of this song
      */
     public String getTitle() {
 	return this.title;
@@ -34,7 +38,7 @@ public class Song {
     /**
      * Returns the album of this song.
      *
-     * @return The album of this song
+     * @return the album of this song
      */
     public String getAlbum() {
 	return this.album;
@@ -43,7 +47,7 @@ public class Song {
     /**
      * Returns the artist of this song.
      *
-     * @return The artist of this song
+     * @return the artist of this song
      */
     public String getArtist() {
 	return this.artist;
@@ -52,7 +56,7 @@ public class Song {
     /**
      * Returns the duration of this song.
      *
-     * @return The duration of this song in seconds
+     * @return the duration of this song in seconds
      */
     public int getDuration() {
 	return this.duration;
@@ -61,7 +65,7 @@ public class Song {
     /**
      * Returns the duration of this song.
      *
-     * @return The duration of this song in m:ss format
+     * @return the duration of this song in m:ss format
      */
     public String getDurationString() {
 	return secondsToString(duration);
@@ -70,8 +74,8 @@ public class Song {
     /**
      * Converts a number of seconds to a String in m:ss format.
      *
-     * @param seconds The number of seconds to convert
-     * @return The given number of seconds in m:ss format
+     * @param seconds the number of seconds to convert
+     * @return the given number of seconds in m:ss format
      */
     public static String secondsToString(int seconds) {
 	// int hours = seconds / 3600;
@@ -87,9 +91,9 @@ public class Song {
     }
 
     /**
-     * Returns the string repesentation of this song.
+     * Returns the string repesentation of this song. A song is represented by its title.
      *
-     * @return The string representation of this song
+     * @return the string representation of this song
      */
     public String toString() {
 	return getTitle();
@@ -98,7 +102,7 @@ public class Song {
     /**
      * Compares two songs for equality.
      *
-     * @return true if this song is equal to song, false otherwise
+     * @return <code>true</code> if this song is equal to song, <code>false</code> otherwise
      */
     public boolean equals(Song song) {
 	return (song.getTitle().equals(getTitle()) && song.getAlbum().equals(getAlbum())
