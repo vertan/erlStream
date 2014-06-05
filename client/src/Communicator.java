@@ -5,13 +5,22 @@ import java.io.*;
 import java.net.*;
 
 /**
- * The Communicator class provides methods to list and play audio files on a server that is running the erlStream server program.
+ * The <code>Communicator</code> class provides methods to connect to and fetch audio data from a server that is running the erlStream server program.
  *
- * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+ * <p>
+ * If the connection is lost, the <code>Communicator</code> will automatically try to reconnect.
+ * </p>
  *
- * @see UpdateListener
+ * @author Jeanette Castillo <jeanette.cas@hotmail.com>
+ * @author Filip Hedman <hedman.filip@gmail.com>
+ * @author Robert Kallgren <robertkallgren@gmail.com>
+ * @author Oscar Mangard <oscarmangard@gmail.com>
+ * @author Mikael Sernheim <mikael.sernheim@gmail.com>
  */
 public class Communicator {
+    /*
+     * This class is used to listen for messages from the server and notify the Communicators observers.
+     */
     private class ListenThread extends Thread {
 	public void run() {
 	    String data;
@@ -58,6 +67,9 @@ public class Communicator {
 	    }
 	}
 
+	/*
+	 * Retries the connection to the server with a set interval.
+	 */
 	private void retryConnection() {
 	    while (!connected && listening) {
 		try {
@@ -84,11 +96,10 @@ public class Communicator {
     private volatile boolean connected = false;
 
     /**
-     * Initializes a newly created Communicator object and requests songs.
+     * Initializes a newly created <code>Communicator</code> object.
      *
-     * @param address The address to the server to communicate with
-     * @param inPort The port to read data from
-     * @param outPort The port to write data to
+     * @param address the address to the server
+     * @param port the port to the server
      */
     public Communicator(String address, int port) {
 	this.address = address;
@@ -97,7 +108,12 @@ public class Communicator {
     }
 
     /**
-     * Attempts to connect to the given server and returns Song object for each available song on the server.
+     * Connects this <code>Communicator</code> to the server. If already connected, the old connection is closed and a new one is created.
+     *
+     * @return the songs available on the server
+     * @throws UnknownHostException if the address given when this <code>Communicator</code> was created could not be determined
+     * @throws IOException if an I/O error occurs when connecting to the server
+     * @see Song
      */
     public List<Song> connect() throws UnknownHostException, IOException {
 	if (connected) disconnect();
@@ -110,7 +126,7 @@ public class Communicator {
     }
 
     /*
-     * Initializes the socket and streams and connects to the server.
+     * Initializes the socket and streams, connects to the server and returns the available songs.
      */
     private List<Song> setupConnection() throws UnknownHostException, IOException {
 	connection = new Socket(address, port);
@@ -137,7 +153,7 @@ public class Communicator {
     }
 
     /*
-     * Reads from fromServer and constructs a list of songs
+     * Reads from fromServer and constructs a list of songs.
      */
     private List<Song> readSongs() throws IOException {
 	List<Song> songs = new ArrayList<Song>();
@@ -156,12 +172,13 @@ public class Communicator {
     }
 
     /**
-     * Returns an InputStream object containing the data for the given song.
+     * Returns a stream object from the server containing the data for the given song.
      *
-     * @param song The song which data to return
-     * @param offset The number of milliseconds to skip ahead
-     * @return true if the file exists on the server and the playback succeeded, false otherwise
-     * @see Song
+     * @param song the song which data to return
+     * @param offset the number of milliseconds to skip ahead
+     * @return a stream containing the data for the given song if the server request succeeded, an empty stream otherwise
+     * @throws UnknownHostException if the address given when this <code>Communicator</code> was created could not be determined
+     * @throws IOException if an I/O error occurs when connecting to the server
      */
     public InputStream play(Song song, int offset) throws UnknownHostException, IOException {
 	Socket temp = new Socket(address, port);
@@ -184,6 +201,9 @@ public class Communicator {
 	return temp.getInputStream();
     }
 
+    /*
+     * Returns input as a list with elements split with the delimiter ":".
+     */
     private List<String> messageToList(String input) {
 	String[] splitInput = input.split(":");
 	
@@ -197,34 +217,36 @@ public class Communicator {
     }
     
     /**
-     * Returns true if this Communicator is connected to a server.
+     * Returns <code>true</code> if this <code>Communicator</code> is connected to the server.
      *
-     * @return true if this Communicator is connected to a server, false otherwise
+     * @return <code>true</code> if this <code>Communicator</code> is connected to the server, <code>false</code> otherwise
      */
     public boolean isConnected() {
 	return connected;
     }
 
     /**
-     * Returns the address to the server to communicate with.
+     * Returns the address to the server given when this <code>Communicator</code> was created.
      *
-     * @return The address to the server to communicate with
+     * @return the address to the server
      */
     public String getAddress() {
 	return address;
     }
 
     /**
-     * Returns the port to the server to communicate with.
+     * Returns the port to the server given when this <code>Communicator</code> was created.
      *
-     * @return The port to the server to communicate with
+     * @return the port to the server
      */
     public int getPort() {
 	return port;
     }
 
     /**
-     * Closes the connection to the server.
+     * Closes the connection to the server. A new connection can be established again using {@link #connect()}.
+     *
+     * @see #connect()
      */
     public void disconnect() {
 	try {
@@ -256,11 +278,28 @@ public class Communicator {
 	connected = false;
     }
 
-    public void addUpdateListener(UpdateListener observer) {
-	observers.add(observer);
+    /**
+     * Adds the specified <code>UpdateListener</code> to receive song and connection updates from this <code>Communicator</code>. 
+     * If listener <code>l</code> is <code>null</code>, no exception is thrown and no action is performed.
+     *
+     * @param l the <code>UpdateListener</code>
+     * @see UpdateListener
+     * @see #removeUpdateListener(UpdateListener)
+     */
+    public void addUpdateListener(UpdateListener l) {
+	if (l != null) observers.add(l);
     }
 
-    public void removeUpdateListener(UpdateListener observer) {
-	observers.remove(observer);
+    /**
+     * Removes the specified <code>UpdateListener</code> so that it no longer receives song and connection updates from this <code>Communicator</code>. 
+     * This method performs no function, nor does it throw an exception, if the listener specified by the argument was not previously added to this <code>Communicator</code>.
+     * If listener <code>l</code> is <code>null</code>, no exception is thrown and no action is performed.
+     *
+     * @param l the <code>UpdateListener</code>
+     * @see UpdateListener
+     * @see #addUpdateListener(UpdateListener)
+     */
+    public void removeUpdateListener(UpdateListener l) {
+	if (l != null) observers.remove(l);
     }
 }
