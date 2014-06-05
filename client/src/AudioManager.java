@@ -70,7 +70,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
      * @return the songs available on the server
      */
     public synchronized List<Song> getSongs() {
-	return songs;
+	return new ArrayList<Song>(songs); // To prevent modification from outside
     }
 
     /**
@@ -196,11 +196,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
      * @return <code>true</code> if the song exists in this <code>AudioManager</code>, <code>false</code> otherwise.
      */
     public boolean exists(Song song) {
-	// return songs.contains(song); ?
-	for (Song songInList : songs) {
-	    if (song.equals(songInList)) return true;
-	}
-	return false;
+	return songs.contains(song);
     }
 
     /**
@@ -430,6 +426,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
      * 
      * @param sortmode 0/1 for title ascending/descending, 2/3 for artist ascending/descending, 4/5 for album ascending/descending and 6/7 for duration ascending/descending
      * @return the songs available on the server, sorted in the given order
+     * @throws IllegalArgumentException if the argument is not an integer between 0 and 7
      */
     public synchronized List<Song> sort(int sortmode) {
 	this.sortmode = sortmode;
@@ -464,11 +461,10 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
 	    Collections.reverse(songs);
 	    break;
 	default:
-	    // throw new IllegalArgumentException(String.valueOf(sortmode));
-	    break;
+	    throw new IllegalArgumentException(String.valueOf(sortmode));
 	}
 
-	return songs;
+	return getSongs();
     }
 
     /*
@@ -514,7 +510,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
 	songs = newSongs;
 	sort(sortmode);
 	for (StatusListener observer: observers) {
-	    observer.songsUpdated(songs);
+	    observer.songsUpdated(getSongs());
 	}
     }
 
@@ -537,7 +533,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
 	this.songs = songs;
 	sort(sortmode);
 	for (StatusListener observer: observers) {
-	    observer.connectionRegained(songs);
+	    observer.connectionRegained(getSongs());
 	}
     }
 
