@@ -3,6 +3,11 @@ import java.util.List;
 /**
  * This interface is used to receive updates from the <code>Communicator</code> class.
  *
+ * @author Jeanette Castillo <jeanette.cas@hotmail.com>
+ * @author Filip Hedman <hedman.filip@gmail.com>
+ * @author Robert Kallgren <robertkallgren@gmail.com>
+ * @author Oscar Mangard <oscarmangard@gmail.com>
+ * @author Mikael Sernheim <mikael.sernheim@gmail.com>
  * @see Communicator
  */
 public interface UpdateListener {
