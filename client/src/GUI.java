@@ -9,6 +9,16 @@ import java.awt.event.*;
 import javax.swing.table.TableRowSorter;
 
 
+/**
+ * The GUI class provides a graphical interface for the <code>AudioManager</code> class.
+ *
+ * @author Jeanette Castillo <jeanette.cas@hotmail.com>
+ * @author Filip Hedman <hedman.filip@gmail.com>
+ * @author Robert Kallgren <robertkallgren@gmail.com>
+ * @author Oscar Mangard <oscarmangard@gmail.com>
+ * @author Mikael Sernheim <mikael.sernheim@gmail.com>
+ * @see AudioManager
+ */
 public class GUI implements UI, StatusListener {
 
  
@@ -509,20 +519,24 @@ public void updateAll(){
 	((TableModel) songTable.getModel()).fill(data);
     }
 
+    @Override
     public void songsUpdated(List<Song> newSongs) {
 	updateSongTable(newSongs);
     }
 
+    @Override
     public void serverShutdown() {
 	status.setText("Server was shut down! Retrying...");
 	status.setForeground(Color.RED);
     }
 
+    @Override
     public void connectionLost() {
 	status.setText("Lost connection to server! Retrying...");
 	status.setForeground(Color.RED);
     }
 
+    @Override
     public void connectionRegained(List<Song> songs) {
 	updateSongTable(songs);
 	status.setText("Connected to " + manager.getAddress() + ":" + manager.getPort() + ".");

@@ -5,11 +5,14 @@ import java.io.*;
 import java.net.*;
 
 /**
- * The CLI class provides a Command Line Interface for the AudioManager module.
+ * The <code>CLI</code> class provides a command-line interface for the <code>AudioManager</code> class.
  *
- * @author Jeanette Castillo <jeanette.cas@hotmail.com>, Filip Hedman <hedman.filip@gmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
- *
- * @see Communicator
+ * @author Jeanette Castillo <jeanette.cas@hotmail.com>
+ * @author Filip Hedman <hedman.filip@gmail.com>
+ * @author Robert Kallgren <robertkallgren@gmail.com>
+ * @author Oscar Mangard <oscarmangard@gmail.com>
+ * @author Mikael Sernheim <mikael.sernheim@gmail.com>
+ * @see AudioManager
  */
 public class CLI implements UI, StatusListener {
     private AudioManager player;
@@ -23,9 +26,7 @@ public class CLI implements UI, StatusListener {
 	sc = new Scanner(System.in);
     }
 
-    /**
-     * Starts the CLI.
-     */
+    @Override
     public void start() {
 	setupConnection();
 	help();
@@ -621,18 +622,22 @@ public class CLI implements UI, StatusListener {
 	list();
     }
 
+    @Override
     public void songsUpdated(List<Song> newSongs) {
 	// System.out.println("New songlist available!");
     }
 
+    @Override
     public void serverShutdown() {
 	System.out.println("Server was shut down! Retrying connection...");
     }
 
+    @Override
     public void connectionLost() {
 	System.out.println("Lost connection to server! Retrying...");
     }
 
+    @Override
     public void connectionRegained(List<Song> songs) {
 	System.out.println("Connection regained!");
     }
