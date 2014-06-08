@@ -1,6 +1,6 @@
 #erlStream
 
-erlStream is a system for streaming audio from a server to clients.
+erlStream is a system for streaming music from a server to clients.
 
 The server is written in Erlang and the Client in Java.
 
@@ -30,7 +30,7 @@ make start_server
 cd path/to/erlStream
 make start_client
 ```
-When started, press <kbd>RETURN</kbd> at the server address prompt.
+When started, enter the server address, the port and press the button.
 
 ## Running the system (Remote server)
 
@@ -47,4 +47,4 @@ make start_server
 cd path/to/erlStream
 make start_client
 ```
-When started, enter the server address at the prompt and press <kbd>RETURN</kbd>.
+When started, enter the server address, the port and press the button.
