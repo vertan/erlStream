@@ -140,6 +140,7 @@ public class Communicator {
 	fromServer = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
 	toServer.writeBytes("connect:Java erlStream Client\n");
+	toServer.flush();
 
 	List<String> message = messageToList(fromServer.readLine());
 	if (message.size() == 2 && message.get(0).equals("connect")) {
@@ -192,6 +193,7 @@ public class Communicator {
 	BufferedReader in = new BufferedReader(new InputStreamReader(temp.getInputStream()));
 
 	out.writeBytes("play:" + offset + ":" + song.getTitle() + "\n");
+	out.flush();
     
 	List<String> message = messageToList(in.readLine());
 	if (message.size() >= 2 && message.get(0).equals("play")) {
