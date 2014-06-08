@@ -1,11 +1,14 @@
-%% @author Filip Hedman (hedman.filip@gmail.com), Jeanette Castillo (jeanette.cas@hotmail.com), Robert Kallgren (robertkallgren@gmail.com), Oscar Mangard (oscarmangard@gmail.com), Mikael Sernheim (mikael.sernheim@gmail.com)
-%% @doc Entry point to the server
+%% @author Filip Hedman <hedman.filip@gmail.com>
+%% @author Jeanette Castillo <jeanette.cas@hotmail.com>
+%% @author Robert Kallgren <robertkallgren@gmail.com>
+%% @author Oscar Mangard <oscarmangard@gmail.com>
+%% @author Mikael Sernheim <mikael.sernheim@gmail.com>
+%% @doc Entry point to the erlStream server program.
 
 -module(server).
 
 -export([start/0, start_cli/0, clients/0, list/0, stop/0]).
 
--include_lib("eunit/include/eunit.hrl").
 -include("song.hrl").
 -include("client.hrl").
 
@@ -13,12 +16,7 @@
 %%                                    API                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @doc Initializes and starts actors for server.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
+%% @doc Starts the server.
 -spec start() -> ok.
 
 start() ->
@@ -41,12 +39,7 @@ start() ->
 
     io:format("Server started!~n").
 
-%% @doc Starts the server along with a command line interface.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
+%% @doc Starts the server along with a command-line interface.
 -spec start_cli() -> ok.
 
 start_cli() ->
@@ -54,11 +47,6 @@ start_cli() ->
     cli_start().
 
 %% @doc Prints a list of the connected clients.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
 -spec clients() -> ok.
 
 clients() ->
@@ -72,11 +60,6 @@ clients() ->
     end.
 
 %% @doc Prints a list of the available songs on the server.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
 -spec list() -> ok.
 
 list() ->
@@ -89,12 +72,7 @@ list() ->
 	    io:format("~n")
     end.
 
-%% @doc Stops the server.
-%%
-%% === Example ===
-%%<div class="example">'''
-%%'''
-%%</div>
+%% @doc Stops the server and notifies the connected clients.
 -spec stop() -> ok.
  
 stop() ->
@@ -148,13 +126,3 @@ cli() ->
 	    cli()
     end.
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                             EUnit Test Cases                              %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% All functions with names ending with _test() or _test_() will be
-%% called automatically by server:test()
-
-list_test() ->
-    tbi.

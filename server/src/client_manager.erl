@@ -1,6 +1,9 @@
-%%%        File : client_manager.erl
-%%%      Author : Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
-%%% Description: Handles clients
+%% @author Filip Hedman <hedman.filip@gmail.com>
+%% @author Jeanette Castillo <jeanette.cas@hotmail.com>
+%% @author Robert Kallgren <robertkallgren@gmail.com>
+%% @author Oscar Mangard <oscarmangard@gmail.com>
+%% @author Mikael Sernheim <mikael.sernheim@gmail.com>
+%% @doc Handles information about clients.
 
 -module(client_manager).
 -behavior(gen_server).
@@ -17,20 +20,47 @@
 %%                                    API                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% @doc Starts the client manager. Refer to the official gen_server
+%% documentation for further information about the different return values.
+-spec start() -> Result when
+      Result :: {ok, Pid} | ignore | {error, Reason},
+      Pid :: pid(),
+      Reason :: {already_started, ?MODULE} | term().
+
 start() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+%% @doc Returns a list with a client record for each client in the manager.
+-spec list() -> [Client] when
+      Client :: #client{socket :: port(), address :: string(), name :: string()}.
 
 list() ->
     gen_server:call(?MODULE, list).
 
+%% @doc Creates and adds a new client with the the given socket and name to the manager.
+-spec connect(Socket, Name) -> ok when
+      Socket :: port(),
+      Name :: string().
+
 connect(Socket, Name) ->
     gen_server:cast(?MODULE, {connect, Socket, Name}).
+
+%% @doc Removes the client with the given socket from the client manager.
+-spec disconnect(Socket) -> ok when
+      Socket :: port().
 
 disconnect(Socket) ->
     gen_server:cast(?MODULE, {disconnect, Socket}).
 
+%% @doc Send the given message to all clients in the manager.
+-spec broadcast(Message) -> ok when
+      Message :: string().
+
 broadcast(Message) ->
     gen_server:cast(?MODULE, {broadcast, Message}).
+
+%% Stops the client manager.
+-spec stop() -> ok.
 
 stop() ->
     gen_server:cast(?MODULE, stop).

@@ -1,6 +1,9 @@
-%%%        File : listener.erl
-%%%      Author : Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
-%%% Description: Handles communication with clients
+%% @author Filip Hedman <hedman.filip@gmail.com>
+%% @author Jeanette Castillo <jeanette.cas@hotmail.com>
+%% @author Robert Kallgren <robertkallgren@gmail.com>
+%% @author Oscar Mangard <oscarmangard@gmail.com>
+%% @author Mikael Sernheim <mikael.sernheim@gmail.com>
+%% @doc Listens for incoming requests from clients and performs the appropriate actions.
 
 -module(listener).
 -behavior(gen_server).
@@ -19,11 +22,20 @@
 %%                                    API                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Starts the listener.
+%% @doc Starts the listener. Refer to the official gen_server documentation for 
+%% further information about the different return values.
+-spec start(Port) -> Result when
+      Port :: integer(),
+      Result :: {ok, Pid} | ignore | {error, Reason},
+      Pid :: pid(),
+      Reason :: {already_started, ?MODULE} | term().
+
 start(Port) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Port, []).
 
-%% Stops the listener.
+%% @doc Stops the listener.
+-spec stop() -> ok.
+
 stop() ->
     gen_server:cast(?MODULE, stop).
 
@@ -78,7 +90,6 @@ accept(ListenSocket) ->
     gen_server:cast(?MODULE, {accepted, self()}),
     handle_request(Socket).
 
-%% Reads and acts upon requests from unknown clients.
 handle_request(Socket) ->
     Address = utils:socket_to_address(Socket),
     case gen_tcp:recv(Socket, 0) of

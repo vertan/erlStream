@@ -1,4 +1,8 @@
-@author Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
+@author Filip Hedman <hedman.filip@gmail.com>
+@author Jeanette Castillo <jeanette.cas@hotmail.com>
+@author Robert Kallgren <robertkallgren@gmail.com>
+@author Oscar Mangard <oscarmangard@gmail.com>
+@author Mikael Sernheim <mikael.sernheim@gmail.com>
 @version 1.0.0
 @title erlStream Client
 @doc This the client program for the erlStream system.

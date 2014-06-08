@@ -1,6 +1,9 @@
-%%%        File : database.erl
-%%%      Author : Filip Hedman <hedman.filip@gmail.com>, Jeanette Castillo <jeanette.cas@hotmail.com>, Robert Kallgren <robertkallgren@gmail.com>, Oscar Mangard <oscarmangard@gmail.com>, Mikael Sernheim <mikael.sernheim@gmail.com>
-%%% Description: Loading and handling songs on the server side
+%% @author Filip Hedman <hedman.filip@gmail.com>
+%% @author Jeanette Castillo <jeanette.cas@hotmail.com>
+%% @author Robert Kallgren <robertkallgren@gmail.com>
+%% @author Oscar Mangard <oscarmangard@gmail.com>
+%% @author Mikael Sernheim <mikael.sernheim@gmail.com>
+%% @doc Loads and handles information about songs.
 
 -module(database).
 -behavior(gen_server).
@@ -18,22 +21,56 @@
 %%                                    API                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% @doc Starts the database and loads information about the available songs in
+%% the given directory. The database will automatically update with the
+%% specified interval in milliseconds. Refer to the official gen_server documentation for 
+%% further information about the different return values.
+-spec start(Directory, UpdateInterval) -> Result when
+      Directory :: string(),
+      UpdateInterval :: integer(),
+      Result :: {ok, Pid} | ignore | {error, Reason},
+      Pid :: pid(),
+      Reason :: {already_started, ?MODULE} | term().
+
 start(Directory, UpdateInterval) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, {Directory, UpdateInterval}, []).
+
+%% @doc Returns a list with a song record for each song in the database.
+-spec list() -> [Song] when
+      Song :: #song{title :: string(), artist :: string(), album :: string(), duration :: integer()}.
 
 list() ->
     gen_server:call(?MODULE, list).
 
+%% @doc Returns the directory given when starting the database.
+-spec get_directory() -> Directory when
+      Directory :: string().
+
 get_directory() ->
     gen_server:call(?MODULE, get_directory).
+
+%% @doc Returns true if a song with the given title exists in the database.
+-spec exists(Title) -> Result when
+      Title :: string(),
+      Result :: true | false.
 
 exists(Title) ->
     gen_server:call(?MODULE, {exists, Title}).
 
+%% Stops the database.
+-spec stop() -> ok.
+
 stop() ->
     gen_server:cast(?MODULE, stop).
 
-%% Not executed by the atual server, for performance reasons.
+%% @doc Returns binary data for a song with the given title in the database.
+%% Offset is the number of milliseconds to skip ahead.
+-spec play(Title, Offset) -> Result when
+      Title :: string(),
+      Offset :: integer(),
+      Result :: {ok, binary()} | {error, Reason},
+      Reason :: offset_too_high | read_failed | no_such_file.
+
 play(Title, Offset) ->
     case exists(Title) of
 	true ->
