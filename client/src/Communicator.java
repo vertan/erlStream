@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class Communicator {
 	}
     }
 
-    private String address;
+    private InetAddress address;
     private int port;
     private Socket connection;
     private DataOutputStream toServer;
@@ -104,9 +105,10 @@ public class Communicator {
      *
      * @param address the address to the server
      * @param port the port to the server
+     * @throws UnknownHostException if the given address could not be determined
      */
-    public Communicator(String address, int port) {
-	this.address = address;
+    public Communicator(String address, int port) throws UnknownHostException {
+	this.address = InetAddress.getByName(address);
 	this.port = port;
 	observers = new ArrayList<UpdateListener>();
     }
@@ -230,11 +232,11 @@ public class Communicator {
     }
 
     /**
-     * Returns the address to the server given when this <code>Communicator</code> was created.
+     * Returns an <code>InetAddress</code> constructed from the address to the server given when this <code>Communicator</code> was created.
      *
      * @return the address to the server
      */
-    public String getAddress() {
+    public InetAddress getAddress() {
 	return address;
     }
 

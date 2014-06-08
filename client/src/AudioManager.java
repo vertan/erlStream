@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -400,11 +401,11 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
     }
 
     /**
-     * Returns the address to the server given when this <code>AudioManager</code> was created.
+     * Returns an <code>InetAddress</code> constructed from the address to the server given when this <code>AudioManager</code> was created.
      *
      * @return the address to the server
      */
-    public String getAddress() {
+    public InetAddress getAddress() {
 	return communicator.getAddress();
     }
 
