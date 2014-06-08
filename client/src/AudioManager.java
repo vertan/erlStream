@@ -1,11 +1,15 @@
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import javazoom.jl.player.advanced.*;
-import java.io.*;
-import java.net.*;
-import java.util.Random;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+
+import javazoom.jl.player.advanced.AdvancedPlayer;
+import javazoom.jl.player.advanced.PlaybackEvent;
+import javazoom.jl.player.advanced.PlaybackListener;
 
 /**
  * The <code>AudioManager</code> represents a music player built to play songs from a server using the {@link Communicator} class.
@@ -116,7 +120,7 @@ public class AudioManager extends PlaybackListener implements UpdateListener {
 	this.offset = offset;
 	paused = false;
 
-	// Maybe this check isn't neccessary
+	// Maybe this check isn't necessary
 	if (isPlaying()) player.close();
 	
 	currentSong = song;

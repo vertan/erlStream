@@ -1,8 +1,12 @@
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import javazoom.jl.player.advanced.AdvancedPlayer;
-import java.io.*;
-import java.net.*;
+import java.util.List;
 
 /**
  * The <code>Communicator</code> class provides methods to connect to and fetch audio data from a server that is running the erlStream server program.
@@ -172,7 +176,7 @@ public class Communicator {
     }
 
     /**
-     * Returns a stream object from the server containing the data for the given song.
+     * Returns a stream object from the server containing the data for the given song. The stream should be closed after use to avoid resource leaks.
      *
      * @param song the song which data to return
      * @param offset the number of milliseconds to skip ahead

@@ -1,8 +1,8 @@
-import java.util.List;
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-import java.io.*;
-import java.net.*;
 
 /**
  * The <code>CLI</code> class provides a command-line interface for the <code>AudioManager</code> class.
@@ -16,7 +16,7 @@ import java.net.*;
  */
 public class CLI implements UI, StatusListener {
     private AudioManager player;
-    private boolean quitPending, connected;
+    private boolean quitPending;
     private Scanner sc;
 
     /**
@@ -38,13 +38,6 @@ public class CLI implements UI, StatusListener {
 
 	sc.close();	
 	System.out.println("Client exited.");
-    }
-
-    /*
-     * Prints a string prepended with "Error: ".
-     */
-    private void printError(String message) {
-	System.out.println("Error: " + message);
     }
 
     /*

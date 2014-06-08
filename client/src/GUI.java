@@ -1,13 +1,33 @@
-import java.util.List;
-import java.util.ArrayList;
-import javax.swing.*;
-import javax.swing.border.BevelBorder;
-import javax.swing.event.*;
-import java.awt.*;
-import static java.awt.Color.*;
-import java.awt.event.*;
-import javax.swing.table.TableRowSorter;
+import static java.awt.Color.BLACK;
+import static java.awt.Color.MAGENTA;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
+import javax.swing.border.BevelBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * The GUI class provides a graphical interface for the <code>AudioManager</code> class.
@@ -121,8 +141,6 @@ public class GUI implements UI, StatusListener {
         }
     }	
 }
-private TableModel model;
-private TableRowSorter<TableModel> sorter;
 private AudioManager manager;
 private JButton playButton;
 private JButton nextButton;
