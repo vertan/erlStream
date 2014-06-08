@@ -9,14 +9,14 @@
 
 -export([timestamp/0, socket_to_address/1]).
 
-%% @doc Returns the current time in [HH:MM:SS] format.
+%% @doc Returns the current time in `[HH:MM:SS]' format.
 -spec timestamp() -> string().
 
 timestamp() ->
     {_Date, {H, M, S}} = calendar:local_time(),
     io_lib:format("[~2..0w:~2..0w:~2..0w]", [H, M, S]).
 
-%% @doc Returns the peername of the given socket, or "Unknown" if it could not be determined.
+%% @doc Returns the peername of the given socket, or `"Unknown"' if it could not be determined.
 -spec socket_to_address(Socket) -> Address when
       Socket :: port(),
       Address :: string().

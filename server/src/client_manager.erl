@@ -20,7 +20,7 @@
 %%                                    API                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @doc Starts the client manager. Refer to the official gen_server
+%% @doc Starts the client manager. Refer to the official `gen_server'
 %% documentation for further information about the different return values.
 -spec start() -> Result when
       Result :: {ok, Pid} | ignore | {error, Reason},
@@ -30,7 +30,7 @@
 start() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-%% @doc Returns a list with a client record for each client in the manager.
+%% @doc Returns a list with a `client' record for each client in the manager.
 -spec list() -> [Client] when
       Client :: #client{socket :: port(), address :: string(), name :: string()}.
 

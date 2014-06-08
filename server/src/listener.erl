@@ -22,7 +22,7 @@
 %%                                    API                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @doc Starts the listener. Refer to the official gen_server documentation for 
+%% @doc Starts the listener. Refer to the official `gen_server' documentation for 
 %% further information about the different return values.
 -spec start(Port) -> Result when
       Port :: integer(),
